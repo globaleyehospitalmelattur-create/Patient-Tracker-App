@@ -200,12 +200,11 @@
 </div>
 
 <script>
-  // 🔴 പുതിയതായി Deploy ചെയ്ത APPS SCRIPT WEB APP URL താഴെ നൽകുക
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHwEPbcnq7fGW3t4CKZysU1xQ-siXJIjM0OGuG1l6EqOJxd1WAikUixQ3TzhWT50pRFw/exec';
+  // 🔴 നിങ്ങളുടെ APPS SCRIPT WEB APP URL ഇവിടെ നൽകുക
+  const SCRIPT_URL = 'YOUR_NEW_DEPLOYED_APPS_SCRIPT_URL_HERE';
   
   let rawData = [];
   let chartInstance = null;
-  let maxDateInSheet = '';
 
   function getVal(item, keys) {
     if (!item) return '';
@@ -280,18 +279,14 @@
     } catch (error) {
       console.error('Fetch Error:', error);
       statusMsg.className = 'error-msg';
-      statusMsg.innerHTML = '⚠️ <b>Data Load ചെയ്യാൻ സാധിച്ചില്ല!</b><br>Apps Script Deploy ചെയ്തപ്പോൾ Access "Anyone" എന്ന് നൽകിയിട്ടുണ്ടോ എന്ന് ഉറപ്പുവരുത്തുക.';
+      statusMsg.innerHTML = '⚠️ <b>Data Load ചെയ്യാൻ സാധിച്ചില്ല!</b><br>Apps Script Deploy ചെയ്തത് "Anyone" എന്നാണോ എന്ന് പരിശോധിക്കുക.';
     }
   }
 
   function processData(data) {
-    let allDates = [];
-
     rawData = data.map(item => {
       const rawDate = getVal(item, ['REG DATE', 'Reg Date', 'DATE', 'Date', 'REGISTRATION DATE']);
       let isoDate = parseDateToISO(rawDate);
-
-      if (isoDate) allDates.push(isoDate);
 
       return {
         original: item,
@@ -308,23 +303,16 @@
       };
     });
 
-    if (allDates.length > 0) {
-      allDates.sort();
-      maxDateInSheet = allDates[allDates.length - 1];
-      if (!document.getElementById('toDate').value) {
-        document.getElementById('toDate').value = maxDateInSheet;
-      }
-    }
-
     populateDropdowns();
     applyFilters();
   }
 
   function populateDropdowns() {
     const staffSelect = document.getElementById('filterStaff');
-    const currentStaffVal = staffSelect.value;
+    
+    // എല്ലാ സ്റ്റാഫുകളുടെയും പേരുകൾ കൃത്യമായി ശേഖരിക്കുന്നു
     const staffs = [...new Set(
-      rawData.map(d => d.assignedTo.toUpperCase())
+      rawData.map(d => d.assignedTo.trim().toUpperCase())
              .filter(name => Boolean(name) && name !== 'ASSIGNED TO' && name !== 'STAFF')
     )].sort();
 
@@ -332,25 +320,20 @@
     staffs.forEach(s => {
       staffSelect.innerHTML += `<option value="${s}">${s}</option>`;
     });
-    staffSelect.value = currentStaffVal;
 
     const callStatusSelect = document.getElementById('filterCallStatus');
-    const currentCS = callStatusSelect.value;
-    const callStatuses = [...new Set(rawData.map(d => d.callStatus.toUpperCase()).filter(Boolean))].sort();
+    const callStatuses = [...new Set(rawData.map(d => d.callStatus.trim().toUpperCase()).filter(Boolean))].sort();
     callStatusSelect.innerHTML = '<option value="">All Calls</option>';
     callStatuses.forEach(cs => {
       callStatusSelect.innerHTML += `<option value="${cs}">${cs}</option>`;
     });
-    callStatusSelect.value = currentCS;
 
     const callTypeSelect = document.getElementById('filterCallType');
-    const currentCT = callTypeSelect.value;
-    const callTypes = [...new Set(rawData.map(d => d.callType.toUpperCase()).filter(Boolean))].sort();
+    const callTypes = [...new Set(rawData.map(d => d.callType.trim().toUpperCase()).filter(Boolean))].sort();
     callTypeSelect.innerHTML = '<option value="">All Types</option>';
     callTypes.forEach(ct => {
       callTypeSelect.innerHTML += `<option value="${ct}">${ct}</option>`;
     });
-    callTypeSelect.value = currentCT;
   }
 
   function updatePerformanceReport(filteredByDateData, fromDate, toDate) {
@@ -363,7 +346,7 @@
     }
 
     const staffs = [...new Set(
-      rawData.map(d => d.assignedTo.toUpperCase())
+      rawData.map(d => d.assignedTo.trim().toUpperCase())
              .filter(name => Boolean(name) && name !== 'ASSIGNED TO' && name !== 'STAFF')
     )].sort();
     
@@ -378,10 +361,10 @@
     const pendingData = [];
 
     const html = staffs.map(staff => {
-      const staffData = filteredByDateData.filter(d => d.assignedTo.toUpperCase() === staff);
+      const staffData = filteredByDateData.filter(d => d.assignedTo.trim().toUpperCase() === staff);
 
       const totalCalls = staffData.length;
-      const completed = staffData.filter(d => d.taskStatus.toUpperCase() === 'COMPLETED').length;
+      const completed = staffData.filter(d => d.taskStatus.trim().toUpperCase() === 'COMPLETED').length;
       const pending = totalCalls - completed;
 
       totalData.push(totalCalls);
@@ -441,7 +424,7 @@
     }
 
     data.forEach(item => {
-      const isCompleted = item.taskStatus.toUpperCase() === 'COMPLETED';
+      const isCompleted = item.taskStatus.trim().toUpperCase() === 'COMPLETED';
       const cardClass = isCompleted ? 'data-card completed' : 'data-card pending';
       const badgeClass = isCompleted ? 'badge badge-completed' : 'badge badge-pending';
       const displayStatus = isCompleted ? 'COMPLETED' : 'PENDING';
@@ -476,10 +459,10 @@
     const searchVal = document.getElementById('searchInput').value.toLowerCase();
     const fromDate = document.getElementById('fromDate').value;
     const toDate = document.getElementById('toDate').value;
-    const staffVal = document.getElementById('filterStaff').value.toUpperCase();
-    const taskVal = document.getElementById('filterTaskStatus').value.toUpperCase();
-    const callVal = document.getElementById('filterCallStatus').value.toUpperCase();
-    const typeVal = document.getElementById('filterCallType').value.toUpperCase();
+    const staffVal = document.getElementById('filterStaff').value.trim().toUpperCase();
+    const taskVal = document.getElementById('filterTaskStatus').value.trim().toUpperCase();
+    const callVal = document.getElementById('filterCallStatus').value.trim().toUpperCase();
+    const typeVal = document.getElementById('filterCallType').value.trim().toUpperCase();
 
     const filteredByDate = rawData.filter(item => {
       if (!fromDate && !toDate) return true;
@@ -498,17 +481,17 @@
       const phoneMatch = item.phone.includes(searchVal);
       const searchMatch = !searchVal || nameMatch || phoneMatch;
 
-      const staffMatch = !staffVal || item.assignedTo.toUpperCase() === staffVal;
+      const staffMatch = !staffVal || item.assignedTo.trim().toUpperCase() === staffVal;
       
       let taskMatch = true;
       if (taskVal === 'COMPLETED') {
-        taskMatch = item.taskStatus.toUpperCase() === 'COMPLETED';
+        taskMatch = item.taskStatus.trim().toUpperCase() === 'COMPLETED';
       } else if (taskVal === 'PENDING') {
-        taskMatch = item.taskStatus.toUpperCase() !== 'COMPLETED';
+        taskMatch = item.taskStatus.trim().toUpperCase() !== 'COMPLETED';
       }
 
-      const callMatch = !callVal || item.callStatus.toUpperCase() === callVal;
-      const typeMatch = !typeVal || item.callType.toUpperCase() === typeVal;
+      const callMatch = !callVal || item.callStatus.trim().toUpperCase() === callVal;
+      const typeMatch = !typeVal || item.callType.trim().toUpperCase() === typeVal;
 
       return searchMatch && staffMatch && taskMatch && callMatch && typeMatch;
     });
@@ -519,7 +502,7 @@
   function resetFilters() {
     document.getElementById('searchInput').value = '';
     document.getElementById('fromDate').value = '';
-    document.getElementById('toDate').value = maxDateInSheet;
+    document.getElementById('toDate').value = '';
     document.getElementById('filterStaff').value = '';
     document.getElementById('filterTaskStatus').value = '';
     document.getElementById('filterCallStatus').value = '';
