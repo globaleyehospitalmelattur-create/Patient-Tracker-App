@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Patient Tracker</title>
+  <title>Patient Tracker System</title>
 
-  <!-- PWA Connections -->
+  <!-- PWA Setup -->
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#2b6cb0">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,7 +14,7 @@
   <meta name="format-detection" content="telephone=no">
   <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/17icwijGR2PT4sa7mteOgf_PozoQP3a4d">
 
-  <!-- External Libraries for Graph, Excel, PDF Export -->
+  <!-- Chart.js & Export Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -83,7 +83,6 @@
     .btn-reset { background: #e2e8f0; border: none; padding: 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; color: #4a5568; margin-top: 8px; width: 100%; cursor: pointer; transition: background 0.2s; }
     .btn-reset:active { background: #cbd5e0; }
 
-    /* Record Summary Counter Bar */
     .summary-counter {
       display: flex;
       justify-content: space-between;
@@ -130,10 +129,10 @@
 <div class="container">
   <header>
     <h1>Patient Call Tracker</h1>
-    <button class="btn-refresh-top" onclick="loadData()">🔄 Refresh</button>
+    <button class="btn-refresh-top" onclick="fetchDataFromNetwork()">🔄 Refresh</button>
   </header>
 
-  <!-- Performance Summary & Graph Card -->
+  <!-- Staff Performance Report & Chart -->
   <div class="card">
     <div class="report-header">
       <h3 id="reportTitle" style="margin-bottom:0;">Staff Performance Report</h3>
@@ -162,7 +161,7 @@
     </div>
   </div>
 
-  <!-- Search & Filters -->
+  <!-- Filters -->
   <div class="filter-box">
     <div class="filter-title">Search & Filters</div>
     
@@ -212,7 +211,6 @@
     <button class="btn-reset" onclick="resetFilters()">Reset All Filters</button>
   </div>
 
-  <!-- Total Record Counter Display Bar -->
   <div class="summary-counter" id="summaryCounterBox" style="display:none;">
     <span>Showing Filtered Records:</span>
     <span class="count-badge" id="recordCountBadge">0 Records</span>
@@ -231,7 +229,8 @@
     });
   }
 
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuviYsO8fU0tzioTtXFZ0Iuoxh8OZkzlW3DZmjYKNFfXkBOhwwtPgxnTatyPPW8CzZQg/exec';
+  // YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSCPC9HLbFkai1AbXHkri-QizuCr_FfFSU7KHEFZAulV5z-aNE-uiap7Ci5vBBf9kFdg/exec';
   let rawData = [];
   let chartInstance = null;
   let maxDateInSheet = '';
@@ -283,59 +282,85 @@
     return isoStr;
   }
 
-  async function loadData() {
+  function initLoad() {
+    const cached = localStorage.getItem('cached_patient_data');
+    if (cached) {
+      try {
+        const parsedData = JSON.parse(cached);
+        processData(parsedData);
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('summaryCounterBox').style.display = 'flex';
+      } catch (e) {
+        console.error("Cache Read Error", e);
+      }
+    }
+    fetchDataFromNetwork();
+  }
+
+  async function fetchDataFromNetwork() {
     const loader = document.getElementById('loader');
-    loader.style.display = 'block';
-    loader.innerText = 'Loading Data...';
+    if (rawData.length === 0) {
+      loader.style.display = 'block';
+      loader.innerText = 'Syncing Data...';
+    }
 
     try {
       const response = await fetch(SCRIPT_URL);
       const data = await response.json();
       
-      let allDates = [];
-
-      rawData = data.map(item => {
-        const rawDate = getVal(item, ['REG DATE', 'Reg Date', 'DATE', 'Date', 'REGISTRATION DATE']);
-        let isoDate = parseDateToISO(rawDate);
-
-        if (isoDate) {
-          allDates.push(isoDate);
-        }
-
-        return {
-          original: item,
-          regDateISO: isoDate,
-          patientName: getVal(item, ['PATIENT NAME', 'NAME', 'PATIENT']),
-          patientId: getVal(item, ['PATIENT ID', 'ID', 'SL NO', 'SLNO']),
-          phone: getVal(item, ['PHN NO.', 'PHN NO', 'PHONE', 'PHONE NO', 'MOBILE', 'CONTACT']),
-          callStatus: getVal(item, ['CALL STATUS', 'STATUS']),
-          feedback: getVal(item, ['FEEDBACK', 'FEED BACK']),
-          callType: getVal(item, ['CALL TYPE', 'TYPE']),
-          assignedTo: getVal(item, ['ASSIGNED TO', 'STAFF', 'ASSIGNED']),
-          taskStatus: getVal(item, ['TASK STATUS', 'TASK']),
-          remarks: getVal(item, ['REMARKS', 'REMARK', 'NOTE'])
-        };
-      });
-
-      // Find Max Date in Sheet
-      if (allDates.length > 0) {
-        allDates.sort();
-        maxDateInSheet = allDates[allDates.length - 1];
-        document.getElementById('toDate').value = maxDateInSheet;
-      }
+      localStorage.setItem('cached_patient_data', JSON.stringify(data));
+      processData(data);
 
       loader.style.display = 'none';
       document.getElementById('summaryCounterBox').style.display = 'flex';
-
-      populateDropdowns();
-      applyFilters();
     } catch (error) {
-      loader.innerText = 'Data load ചെയ്യാൻ കഴിഞ്ഞില്ല. Apps Script URL ഉറപ്പുവരുത്തുക.';
+      if (rawData.length === 0) {
+        loader.innerText = 'Data load ചെയ്യാൻ കഴിഞ്ഞില്ല. Network Connection ഉറപ്പുവരുത്തുക.';
+      }
     }
+  }
+
+  function processData(data) {
+    let allDates = [];
+
+    rawData = data.map(item => {
+      const rawDate = getVal(item, ['REG DATE', 'Reg Date', 'DATE', 'Date', 'REGISTRATION DATE']);
+      let isoDate = parseDateToISO(rawDate);
+
+      if (isoDate) {
+        allDates.push(isoDate);
+      }
+
+      return {
+        original: item,
+        regDateISO: isoDate,
+        patientName: getVal(item, ['PATIENT NAME', 'NAME', 'PATIENT']),
+        patientId: getVal(item, ['PATIENT ID', 'ID', 'SL NO', 'SLNO']),
+        phone: getVal(item, ['PHN NO.', 'PHN NO', 'PHONE', 'PHONE NO', 'MOBILE', 'CONTACT']),
+        callStatus: getVal(item, ['CALL STATUS', 'STATUS']),
+        feedback: getVal(item, ['FEEDBACK', 'FEED BACK']),
+        callType: getVal(item, ['CALL TYPE', 'TYPE']),
+        assignedTo: getVal(item, ['ASSIGNED TO', 'STAFF', 'ASSIGNED']),
+        taskStatus: getVal(item, ['TASK STATUS', 'TASK']),
+        remarks: getVal(item, ['REMARKS', 'REMARK', 'NOTE'])
+      };
+    });
+
+    if (allDates.length > 0) {
+      allDates.sort();
+      maxDateInSheet = allDates[allDates.length - 1];
+      if (!document.getElementById('toDate').value) {
+        document.getElementById('toDate').value = maxDateInSheet;
+      }
+    }
+
+    populateDropdowns();
+    applyFilters();
   }
 
   function populateDropdowns() {
     const staffSelect = document.getElementById('filterStaff');
+    const currentStaffVal = staffSelect.value;
     const staffs = [...new Set(
       rawData.map(d => d.assignedTo.toUpperCase())
              .filter(name => Boolean(name) && name !== 'ASSIGNED TO' && name !== 'STAFF')
@@ -345,20 +370,25 @@
     staffs.forEach(s => {
       staffSelect.innerHTML += `<option value="${s}">${s}</option>`;
     });
+    staffSelect.value = currentStaffVal;
 
     const callStatusSelect = document.getElementById('filterCallStatus');
+    const currentCS = callStatusSelect.value;
     const callStatuses = [...new Set(rawData.map(d => d.callStatus.toUpperCase()).filter(Boolean))].sort();
     callStatusSelect.innerHTML = '<option value="">All Calls</option>';
     callStatuses.forEach(cs => {
       callStatusSelect.innerHTML += `<option value="${cs}">${cs}</option>`;
     });
+    callStatusSelect.value = currentCS;
 
     const callTypeSelect = document.getElementById('filterCallType');
+    const currentCT = callTypeSelect.value;
     const callTypes = [...new Set(rawData.map(d => d.callType.toUpperCase()).filter(Boolean))].sort();
     callTypeSelect.innerHTML = '<option value="">All Types</option>';
     callTypes.forEach(ct => {
       callTypeSelect.innerHTML += `<option value="${ct}">${ct}</option>`;
     });
+    callTypeSelect.value = currentCT;
   }
 
   function updatePerformanceReport(filteredByDateData, fromDate, toDate) {
@@ -445,7 +475,6 @@
     const container = document.getElementById('patientList');
     container.innerHTML = '';
 
-    // Update total count badge
     document.getElementById('recordCountBadge').innerText = `${data.length} Records`;
 
     if (data.length === 0) {
@@ -564,7 +593,7 @@
     doc.save("Staff_Performance_Report.pdf");
   }
 
-  loadData();
+  initLoad();
 </script>
 
 </body>
