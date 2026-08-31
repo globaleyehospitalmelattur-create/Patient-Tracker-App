@@ -147,11 +147,11 @@
 </div>
 
 <script>
-  // നിങ്ങളുടെ പുതിയ Apps Script Web App URL ഇവിടെ നൽകുക
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxxYnwMk8SBZPcN5M86xFtME-zRbTGwiAc373SgmhDMlIwZRTKVrw6oEfFJJOTvnnHOvA/exec';
+  // നിങ്ങളുടെ Apps Script Web App URL ഇവിടെ നൽകുക
+  const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
   let rawData = [];
 
-  // Mobile PWA Setup Dynamic
+  // PWA Setup
   const manifestData = {
     "name": "Patient Tracker",
     "short_name": "Tracker",
@@ -165,14 +165,22 @@
   const blob = new Blob([stringManifest], {type: 'application/json'});
   document.getElementById('manifestPlaceholder').setAttribute('href', URL.createObjectURL(blob));
 
+  // local YYYY-MM-DD തീയതി കൃത്യമായി എടുക്കാനുള്ള ഫങ്ഷൻ
+  function getLocalDateString(dateObj = new Date()) {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   // Set Default Date to Today
   function setDefaultTodayDates() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     document.getElementById('fromDate').value = today;
     document.getElementById('toDate').value = today;
   }
 
-  // Fetch Data from Google Sheets API
+  // Fetch Data from Google Sheets
   async function loadData() {
     try {
       const response = await fetch(SCRIPT_URL);
@@ -202,7 +210,7 @@
   }
 
   // Update Performance Summary Card Dynamically by Selected Date Range
-  function updatePerformanceReport(filteredData, fromDate, toDate) {
+  function updatePerformanceReport(filteredByDateData, fromDate, toDate) {
     const reportTitle = document.getElementById('reportTitle');
     
     if (fromDate && toDate && fromDate === toDate) {
@@ -221,7 +229,7 @@
     }
 
     const html = staffs.map(staff => {
-      const staffData = filteredData.filter(d => (d['ASSIGNED TO'] || '').toString().trim().toUpperCase() === staff);
+      const staffData = filteredByDateData.filter(d => (d['ASSIGNED TO'] || '').toString().trim().toUpperCase() === staff);
 
       const totalCalls = staffData.length;
       const completed = staffData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'COMPLETED').length;
@@ -333,7 +341,7 @@
     if (!dateStr) return '';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return '';
-    return date.toISOString().split('T')[0];
+    return getLocalDateString(date);
   }
 
   function formatDate(dateStr) {
