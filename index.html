@@ -5,46 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Patient Tracker</title>
 
+  <!-- PWA Connections -->
+  <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#2b6cb0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Patient Tracker">
   <meta name="format-detection" content="telephone=no">
-  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063822.png">
-  <link rel="manifest" id="manifestPlaceholder">
+  <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/17icwijGR2PT4sa7mteOgf_PozoQP3a4d">
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: #f0f4f8; padding: 12px; color: #333; -webkit-tap-highlight-color: transparent; }
     
     .container { max-width: 100%; margin: 0 auto; }
-    
-    header { background: #2b6cb0; color: white; padding: 14px; border-radius: 12px; margin-bottom: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
-    header h1 { font-size: 1.1rem; font-weight: 600; }
+    header { background: linear-gradient(135deg, #2b6cb0, #1a365d); color: white; padding: 14px; border-radius: 12px; margin-bottom: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    header h1 { font-size: 1.1rem; font-weight: 600; letter-spacing: 0.5px; }
 
-    /* Performance Dashboard */
     .card { background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 12px; }
     .card h3 { font-size: 0.85rem; color: #4a5568; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
     
     .report-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-    .report-table th, .report-table td { border: 1px solid #e2e8f0; padding: 6px 4px; text-align: center; }
+    .report-table th, .report-table td { border: 1px solid #e2e8f0; padding: 8px 4px; text-align: center; }
     .report-table th { background-color: #edf2f7; color: #2d3748; font-weight: bold; }
 
-    /* Mobile Search & Filters */
     .filter-box { background: white; padding: 12px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
     .filter-title { font-size: 0.85rem; font-weight: bold; color: #2d3748; margin-bottom: 8px; }
     
-    .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    
-    label { font-size: 0.7rem; font-weight: 600; color: #4a5568; display: block; margin-bottom: 2px; }
-    select, input { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.8rem; background: #fff; outline: none; appearance: none; -webkit-appearance: none; }
-    
-    .btn-reset { background: #e2e8f0; border: none; padding: 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; color: #4a5568; margin-top: 8px; width: 100%; cursor: pointer; }
+    /* Search Box Input */
+    .search-input { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.85rem; margin-bottom: 8px; outline: none; }
 
-    /* Data Cards */
+    .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    label { font-size: 0.7rem; font-weight: 600; color: #4a5568; display: block; margin-bottom: 2px; }
+    select, input[type="date"] { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.8rem; background: #fff; outline: none; appearance: none; -webkit-appearance: none; }
+    
+    .btn-reset { background: #e2e8f0; border: none; padding: 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; color: #4a5568; margin-top: 8px; width: 100%; cursor: pointer; transition: background 0.2s; }
+    .btn-reset:active { background: #cbd5e0; }
+
     .data-list { display: flex; flex-direction: column; gap: 10px; }
     .data-card { background: white; border-radius: 10px; padding: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-left: 4px solid #cbd5e0; }
-    
     .data-card.pending { border-left-color: #e53e3e; background-color: #fff8f8; }
     .data-card.completed { border-left-color: #38a169; }
     
@@ -59,8 +58,8 @@
     .full-width { grid-column: span 2; }
     .remarks-box { color: #e53e3e; font-weight: 600; background: #fff; padding: 6px; border-radius: 6px; border: 1px dashed #feb2b2; margin-top: 2px; }
 
-    .no-link, a[href^="tel"] { color: inherit !important; text-decoration: none !important; pointer-events: none !important; cursor: default !important; }
-    .loader { text-align: center; padding: 15px; font-size: 0.85rem; font-weight: bold; color: #4a5568; }
+    .phone-link { color: #2b6cb0; text-decoration: none; font-weight: bold; }
+    .loader { text-align: center; padding: 20px; font-size: 0.85rem; font-weight: bold; color: #4a5568; }
   </style>
 </head>
 <body>
@@ -70,6 +69,7 @@
     <h1>Patient Call Tracker</h1>
   </header>
 
+  <!-- Performance Summary Card -->
   <div class="card">
     <h3 id="reportTitle">Staff Performance Report</h3>
     <table class="report-table">
@@ -87,9 +87,13 @@
     </table>
   </div>
 
+  <!-- Search & Filters -->
   <div class="filter-box">
     <div class="filter-title">Search & Filters</div>
     
+    <!-- Quick Search Input -->
+    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search Name or Phone Number..." onkeyup="applyFilters()">
+
     <div class="filter-grid">
       <div>
         <label>From Date</label>
@@ -147,25 +151,19 @@
 </div>
 
 <script>
-  // നിങ്ങളുടെ Apps Script Web App URL ഇവിടെ നൽകുക
+  // Service Worker Registration for PWA
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker Registered'))
+        .catch(err => console.log('SW Registration Failed: ', err));
+    });
+  }
+
+  // നിങ്ങളുടെ Apps Script URL ഇവിടെ നൽകുക
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxxYnwMk8SBZPcN5M86xFtME-zRbTGwiAc373SgmhDMlIwZRTKVrw6oEfFJJOTvnnHOvA/exec';
   let rawData = [];
 
-  // PWA Setup
-  const manifestData = {
-    "name": "Patient Tracker",
-    "short_name": "Tracker",
-    "start_url": ".",
-    "display": "standalone",
-    "background_color": "#f0f4f8",
-    "theme_color": "#2b6cb0",
-    "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/3063/3063822.png", "sizes": "512x512", "type": "image/png" }]
-  };
-  const stringManifest = JSON.stringify(manifestData);
-  const blob = new Blob([stringManifest], {type: 'application/json'});
-  document.getElementById('manifestPlaceholder').setAttribute('href', URL.createObjectURL(blob));
-
-  // local YYYY-MM-DD തീയതി കൃത്യമായി എടുക്കാനുള്ള ഫങ്ഷൻ
   function getLocalDateString(dateObj = new Date()) {
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -173,14 +171,12 @@
     return `${year}-${month}-${day}`;
   }
 
-  // Set Default Date to Today
   function setDefaultTodayDates() {
     const today = getLocalDateString();
     document.getElementById('fromDate').value = today;
     document.getElementById('toDate').value = today;
   }
 
-  // Fetch Data from Google Sheets
   async function loadData() {
     try {
       const response = await fetch(SCRIPT_URL);
@@ -195,7 +191,6 @@
     }
   }
 
-  // Auto Populate Dynamic Staff Names
   function populateStaffDropdown(data) {
     const staffSelect = document.getElementById('filterStaff');
     const staffs = [...new Set(data.map(item => (item['ASSIGNED TO'] || '').toString().trim().toUpperCase()).filter(Boolean))];
@@ -209,7 +204,6 @@
     });
   }
 
-  // Update Performance Summary Card Dynamically by Selected Date Range
   function updatePerformanceReport(filteredByDateData, fromDate, toDate) {
     const reportTitle = document.getElementById('reportTitle');
     
@@ -248,7 +242,6 @@
     document.getElementById('staffReport').innerHTML = html;
   }
 
-  // Render Mobile Data Cards
   function renderCards(data) {
     const container = document.getElementById('patientList');
     container.innerHTML = '';
@@ -264,6 +257,7 @@
       const cardClass = isPending ? 'data-card pending' : 'data-card completed';
       const badgeClass = isPending ? 'badge badge-pending' : 'badge badge-completed';
       const remarks = item['REMARKS'] || item['Remarks'] || '-';
+      const phoneNum = item['PHN NO.'] || '-';
 
       const card = document.createElement('div');
       card.className = cardClass;
@@ -275,7 +269,7 @@
         <div class="card-body">
           <div><strong>Reg Date:</strong> ${formatDate(item['REG DATE'])}</div>
           <div><strong>ID:</strong> ${item['PATIENT ID'] || '-'}</div>
-          <div><strong>Ph No:</strong> <span class="no-link">${item['PHN NO.'] || '-'}</span></div>
+          <div><strong>Ph No:</strong> ${phoneNum !== '-' ? `<a href="tel:${phoneNum}" class="phone-link">${phoneNum}</a>` : '-'}</div>
           <div><strong>Call Status:</strong> ${item['CALL STATUS'] || '-'}</div>
           <div><strong>Feedback:</strong> ${item['FEEDBACK'] || '-'}</div>
           <div><strong>Call Type:</strong> ${item['CALL TYPE'] || '-'}</div>
@@ -289,8 +283,8 @@
     });
   }
 
-  // Apply Search & Date Filter Rules
   function applyFilters() {
+    const searchVal = document.getElementById('searchInput').value.toLowerCase();
     const fromDate = document.getElementById('fromDate').value;
     const toDate = document.getElementById('toDate').value;
     const staffVal = document.getElementById('filterStaff').value.toUpperCase();
@@ -298,7 +292,6 @@
     const callVal = document.getElementById('filterCallStatus').value.toUpperCase();
     const typeVal = document.getElementById('filterCallType').value.toUpperCase();
 
-    // Filter Data by Date Range
     const filteredByDate = rawData.filter(item => {
       const itemDate = getISOFromDate(item['REG DATE']);
       let dateMatch = true;
@@ -312,23 +305,26 @@
       return dateMatch;
     });
 
-    // Update Performance Table by Selected Range
     updatePerformanceReport(filteredByDate, fromDate, toDate);
 
-    // Filter Data Cards by other selections
     const finalFiltered = filteredByDate.filter(item => {
+      const nameMatch = (item['PATIENT NAME'] || '').toString().toLowerCase().includes(searchVal);
+      const phoneMatch = (item['PHN NO.'] || '').toString().includes(searchVal);
+      const searchMatch = !searchVal || nameMatch || phoneMatch;
+
       const staffMatch = !staffVal || (item['ASSIGNED TO'] || '').toString().trim().toUpperCase() === staffVal;
       const taskMatch = !taskVal || (item['TASK STATUS'] || '').toString().trim().toUpperCase() === taskVal;
       const callMatch = !callVal || (item['CALL STATUS'] || '').toString().trim().toUpperCase() === callVal;
       const typeMatch = !typeVal || (item['CALL TYPE'] || '').toString().trim().toUpperCase() === typeVal;
 
-      return staffMatch && taskMatch && callMatch && typeMatch;
+      return searchMatch && staffMatch && taskMatch && callMatch && typeMatch;
     });
 
     renderCards(finalFiltered);
   }
 
   function resetFilters() {
+    document.getElementById('searchInput').value = '';
     document.getElementById('filterStaff').value = '';
     document.getElementById('filterTaskStatus').value = '';
     document.getElementById('filterCallStatus').value = '';
