@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Patient Tracker System</title>
 
-  <!-- Chart.js & Export Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -111,7 +110,6 @@
     <button class="btn-refresh-top" onclick="fetchDataFromNetwork()">🔄 Refresh</button>
   </header>
 
-  <!-- Staff Report -->
   <div class="card">
     <div class="report-header">
       <h3 id="reportTitle" style="margin-bottom:0;">Staff Performance Report</h3>
@@ -136,15 +134,13 @@
     </table>
   </div>
 
-  <!-- Monthly Line Graph -->
   <div class="card">
-    <h3>Monthly Trend (Line Graph)</h3>
+    <h3>Monthly Trend (12 Months Overview)</h3>
     <div class="chart-container">
       <canvas id="monthlyChart"></canvas>
     </div>
   </div>
 
-  <!-- Search & Filters -->
   <div class="filter-box">
     <div class="filter-title">Search & Filters</div>
     
@@ -213,7 +209,6 @@
     if (!item) return '';
     const itemKeys = Object.keys(item);
     for (let k of keys) {
-      // Spaces, case sensitivity എന്നിവ പരിഹരിക്കാനുള്ള റോബസ്റ്റ് മാപ്പിംഗ്
       const match = itemKeys.find(ik => ik.replace(/\s+/g, '').toLowerCase() === k.replace(/\s+/g, '').toLowerCase());
       if (match && item[match] !== undefined && item[match] !== null) {
         return item[match].toString().trim();
@@ -222,17 +217,22 @@
     return '';
   }
 
+  // മെച്ചപ്പെടുത്തിയ തീയതി കൈകാര്യം ചെയ്യുന്ന ലോജിക്
   function parseDateToISO(dateStr) {
     if (!dateStr) return '';
     let str = dateStr.toString().trim();
     if (!str) return '';
 
+    // ISO Format yyyy-mm-dd (eg: 2026-05-18)
+    if (str.includes('-') && str.split('-')[0].length === 4) {
+      return str.substring(0, 10);
+    }
+
+    // DD/MM/YYYY അല്ലെങ്കിൽ MM/DD/YYYY തിരിച്ചറിയുന്നു
     if (str.includes('/') || str.includes('-')) {
       const parts = str.split(/[\/\-]/);
       if (parts.length === 3) {
-        if (parts[0].length === 4) {
-          return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-        } else if (parts[2].length === 4) {
+        if (parts[2].length === 4) { // DD-MM-YYYY
           return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
         }
       }
@@ -283,7 +283,7 @@
     } catch (error) {
       console.error('Fetch Error:', error);
       statusMsg.className = 'error-msg';
-      statusMsg.innerHTML = '⚠️ <b>Data Load ചെയ്യാൻ സാധിച്ചില്ല!</b><br>Apps Script Deploy ചെയ്തത് "Anyone" എന്നാണോ എന്ന് പരിശോധിക്കുക.';
+      statusMsg.innerHTML = '⚠️ <b>Data Load ചെയ്യാൻ സാധിച്ചില്ല!</b>';
     }
   }
 
@@ -292,13 +292,8 @@
       const rawDate = getVal(item, ['REG DATE', 'Reg Date', 'DATE', 'Date', 'REGISTRATION DATE']);
       let isoDate = parseDateToISO(rawDate);
 
-      // Assigned To ഫീൽഡ് വേർതിരിച്ചെടുക്കുന്നു
       let staffVal = getVal(item, ['ASSIGNED TO', 'ASSIGNEDTO', 'ASSIGNED', 'STAFF', 'STAFF NAME', 'STAFFNAME']);
-      
-      // Blank ആയാൽ UNASSIGNED എന്ന് ഓട്ടോമാറ്റിക് ആക്കുന്നു
-      if (!staffVal) {
-        staffVal = 'UNASSIGNED';
-      }
+      if (!staffVal) staffVal = 'UNASSIGNED';
 
       return {
         original: item,
@@ -321,8 +316,6 @@
 
   function populateDropdowns() {
     const staffSelect = document.getElementById('filterStaff');
-    
-    // ഡാറ്റയിലുള്ള എല്ലാ Staff അംഗങ്ങളെയും ഓട്ടോമാറ്റിക് ആയി ഡൈനാമിക് ലിസ്റ്റാക്കുന്നു
     const staffs = [...new Set(
       rawData.map(d => d.assignedTo.trim().toUpperCase())
              .filter(name => Boolean(name) && !['ASSIGNED TO', 'STAFF', 'STAFF NAME', 'ASSIGNED'].includes(name))
@@ -369,7 +362,6 @@
 
     const html = staffs.map(staff => {
       const staffData = filteredByDateData.filter(d => d.assignedTo.trim().toUpperCase() === staff);
-
       const totalCalls = staffData.length;
       const completed = staffData.filter(d => d.taskStatus.trim().toUpperCase() === 'COMPLETED').length;
       const pending = totalCalls - completed;
@@ -389,40 +381,29 @@
     renderMonthlyLineChart(filteredByDateData);
   }
 
+  // 12 മാസങ്ങളും നിർബന്ധമായും ഗ്രാഫിൽ കാണിക്കുന്ന ഫംഗ്ഷൻ
   function renderMonthlyLineChart(filteredData) {
-    const monthMap = {};
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthStats = Array(12).fill(0).map(() => ({ total: 0, completed: 0, pending: 0 }));
 
     filteredData.forEach(item => {
       if (item.regDateISO) {
-        const parts = item.regDateISO.split('-');
-        if (parts.length >= 2) {
-          const yearMonthKey = `${parts[0]}-${parts[1]}`;
-          
-          if (!monthMap[yearMonthKey]) {
-            monthMap[yearMonthKey] = { total: 0, completed: 0, pending: 0 };
-          }
-
-          monthMap[yearMonthKey].total += 1;
+        const dateObj = new Date(item.regDateISO);
+        if (!isNaN(dateObj.getTime())) {
+          const monthIndex = dateObj.getMonth(); // 0 - 11
+          monthStats[monthIndex].total += 1;
           if (item.taskStatus.trim().toUpperCase() === 'COMPLETED') {
-            monthMap[yearMonthKey].completed += 1;
+            monthStats[monthIndex].completed += 1;
           } else {
-            monthMap[yearMonthKey].pending += 1;
+            monthStats[monthIndex].pending += 1;
           }
         }
       }
     });
 
-    const sortedMonths = Object.keys(monthMap).sort();
-
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const labels = sortedMonths.map(key => {
-      const [y, m] = key.split('-');
-      return `${monthNames[parseInt(m) - 1]} ${y}`;
-    });
-
-    const totalData = sortedMonths.map(k => monthMap[k].total);
-    const completedData = sortedMonths.map(k => monthMap[k].completed);
-    const pendingData = sortedMonths.map(k => monthMap[k].pending);
+    const totalData = monthStats.map(m => m.total);
+    const completedData = monthStats.map(m => m.completed);
+    const pendingData = monthStats.map(m => m.pending);
 
     const ctx = document.getElementById('monthlyChart').getContext('2d');
     if (chartInstance) chartInstance.destroy();
@@ -430,7 +411,7 @@
     chartInstance = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: labels,
+        labels: monthNames,
         datasets: [
           { 
             label: 'Total Calls', 
