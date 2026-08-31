@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Patient Tracker App</title>
+
+  <!-- PWA & Mobile Optimization -->
+  <meta name="theme-color" content="#2b6cb0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Patient Tracker">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063822.png">
+  <link rel="manifest" id="manifestPlaceholder">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #f0f4f8; padding: 12px; color: #333; -webkit-tap-highlight-color: transparent; }
+    
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    header { background: #2b6cb0; color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    header h1 { font-size: 1.2rem; }
+
+    /* Performance Dashboard */
+    .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px; }
+    .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    .card h3 { font-size: 0.9rem; color: #4a5568; margin-bottom: 8px; }
+    
+    .report-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .report-table th, .report-table td { border: 1px solid #e2e8f0; padding: 8px; text-align: center; }
+    .report-table th { background-color: #edf2f7; color: #2d3748; }
+
+    /* Filter Section */
+    .filter-box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
+    
+    label { font-size: 0.75rem; font-weight: bold; color: #4a5568; display: block; margin-bottom: 3px; }
+    select, input { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.85rem; background: #fff; outline: none; }
+    
+    .btn-reset { background: #e2e8f0; border: none; padding: 10px; border-radius: 8px; font-weight: bold; color: #4a5568; margin-top: 10px; width: 100%; cursor: pointer; }
+
+    /* Patient Cards for Mobile */
+    .data-list { display: flex; flex-direction: column; gap: 12px; }
+    .data-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #cbd5e0; }
+    
+    /* Red Highlight for Pending Tasks */
+    .data-card.pending { border-left-color: #e53e3e; background-color: #fff5f5; }
+    .data-card.completed { border-left-color: #38a169; }
+    
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #edf2f7; padding-bottom: 6px; }
+    .patient-name { font-weight: bold; font-size: 1rem; color: #2d3748; }
+    
+    .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+    .badge-pending { background: #fed7d7; color: #9b2c2c; animation: pulse 1.5s infinite; }
+    .badge-completed { background: #c6f6d5; color: #22543d; }
+    
+    .card-body { font-size: 0.85rem; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; color: #4a5568; }
+    .full-width { grid-column: span 2; }
+    .remarks-text { color: #e53e3e; font-weight: bold; background: #fff; padding: 6px; border-radius: 6px; border: 1px dashed #feb2b2; }
+
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+    .loader { text-align: center; padding: 20px; font-weight: bold; color: #4a5568; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Patient Call Management Dashboard</h1>
+  </header>
+
+  <!-- Performance Summary -->
+  <div class="dashboard-grid">
+    <div class="card">
+      <h3>Daily Staff Performance Report</h3>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Staff</th>
+            <th>Today Calls</th>
+            <th>Completed</th>
+            <th>Pending</th>
+          </tr>
+        </thead>
+        <tbody id="staffReport">
+          <tr><td colspan="4">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-box">
+    <strong>Search & Filters</strong>
+    
+    <div class="filter-grid">
+      <div>
+        <label>From Date</label>
+        <input type="date" id="fromDate" onchange="applyFilters()">
+      </div>
+      <div>
+        <label>To Date</label>
+        <input type="date" id="toDate" onchange="applyFilters()">
+      </div>
+      <div>
+        <label>Staff</label>
+        <select id="filterStaff" onchange="applyFilters()">
+          <option value="">All Staffs</option>
+          <option value="KAVYA">Kavya</option>
+          <option value="MAJIDA">Majida</option>
+          <option value="DINSHA">Dinsha</option>
+        </select>
+      </div>
+      <div>
+        <label>Task Status</label>
+        <select id="filterTaskStatus" onchange="applyFilters()">
+          <option value="">All Status</option>
+          <option value="PENDING">PENDING Only</option>
+          <option value="COMPLETED">COMPLETED Only</option>
+        </select>
+      </div>
+      <div>
+        <label>Call Status</label>
+        <select id="filterCallStatus" onchange="applyFilters()">
+          <option value="">All Calls</option>
+          <option value="CONNECTED">CONNECTED</option>
+          <option value="BUSY">BUSY</option>
+          <option value="NOT CONNECTED">NOT CONNECTED</option>
+          <option value="NOREACHABLE">NOREACHABLE</option>
+        </select>
+      </div>
+      <div>
+        <label>Call Type</label>
+        <select id="filterCallType" onchange="applyFilters()">
+          <option value="">All Types</option>
+          <option value="FEEDBACK">FEEDBACK</option>
+          <option value="FOLLOW UP">FOLLOW UP</option>
+          <option value="RETINA">RETINA</option>
+          <option value="CATARACT">CATARACT</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-reset" onclick="resetFilters()">Reset All Filters</button>
+  </div>
+
+  <!-- Patient List -->
+  <div id="loader" class="loader">Loading Data from Google Sheets...</div>
+  <div class="data-list" id="patientList"></div>
+</div>
+
+<script>
+  const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+  let rawData = [];
+
+  // PWA Manifest setup
+  const manifestData = {
+    "name": "Patient Tracker",
+    "short_name": "Tracker",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#f0f4f8",
+    "theme_color": "#2b6cb0",
+    "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/3063/3063822.png", "sizes": "512x512", "type": "image/png" }]
+  };
+  const stringManifest = JSON.stringify(manifestData);
+  const blob = new Blob([stringManifest], {type: 'application/json'});
+  document.getElementById('manifestPlaceholder').setAttribute('href', URL.createObjectURL(blob));
+
+  // Fetch Data from Google Sheets
+  async function loadData() {
+    try {
+      const response = await fetch(SCRIPT_URL);
+      rawData = await response.json();
+      document.getElementById('loader').style.display = 'none';
+      generateReport(rawData);
+      applyFilters();
+    } catch (error) {
+      document.getElementById('loader').innerText = 'Data load ചെയ്യാൻ കഴിഞ്ഞില്ല! Apps Script URL പരിശോധിക്കുക.';
+    }
+  }
+
+  // Render Data List
+  function renderCards(data) {
+    const container = document.getElementById('patientList');
+    container.innerHTML = '';
+
+    if (data.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:20px; background:white; border-radius:12px;">ഡാറ്റയൊന്നും കണ്ടെത്തിയില്ല!</div>';
+      return;
+    }
+
+    data.forEach(item => {
+      const taskStatus = (item['TASK STATUS'] || '').toString().trim().toUpperCase();
+      const isPending = taskStatus === 'PENDING';
+      const cardClass = isPending ? 'data-card pending' : 'data-card completed';
+      const badgeClass = isPending ? 'badge badge-pending' : 'badge badge-completed';
+      const remarks = item['REMARKS'] || item['Remarks'] || '-';
+
+      const card = document.createElement('div');
+      card.className = cardClass;
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="patient-name">${item['PATIENT NAME'] || 'N/A'}</span>
+          <span class="${badgeClass}">${taskStatus}</span>
+        </div>
+        <div class="card-body">
+          <div><strong>Reg Date:</strong> ${formatDate(item['REG DATE'])}</div>
+          <div><strong>Patient ID:</strong> ${item['PATIENT ID'] || '-'}</div>
+          <div><strong>Phone:</strong> ${item['PHN NO.'] || '-'}</div>
+          <div><strong>Call Status:</strong> ${item['CALL STATUS'] || '-'}</div>
+          <div><strong>Feedback:</strong> ${item['FEEDBACK'] || '-'}</div>
+          <div><strong>Call Type:</strong> ${item['CALL TYPE'] || '-'}</div>
+          <div><strong>Assigned To:</strong> <strong>${item['ASSIGNED TO'] || '-'}</strong></div>
+          <div class="full-width ${isPending ? 'remarks-text' : ''}">
+            <strong>Remarks / Pending Reason:</strong> ${remarks}
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  // Daily Staff Performance Summary
+  function generateReport(data) {
+    const staffs = ['KAVYA', 'MAJIDA', 'DINSHA'];
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    const html = staffs.map(staff => {
+      const staffData = data.filter(d => (d['ASSIGNED TO'] || '').toString().trim().toUpperCase() === staff);
+      
+      const todayCalls = staffData.filter(d => getISOFromDate(d['REG DATE']) === todayStr).length;
+      const completed = staffData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'COMPLETED').length;
+      const pending = staffData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'PENDING').length;
+
+      return `
+        <tr>
+          <td><strong>${staff}</strong></td>
+          <td>${todayCalls}</td>
+          <td style="color:green; font-weight:bold;">${completed}</td>
+          <td style="color:red; font-weight:bold;">${pending}</td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById('staffReport').innerHTML = html;
+  }
+
+  // Filters logic
+  function applyFilters() {
+    const fromDate = document.getElementById('fromDate').value;
+    const toDate = document.getElementById('toDate').value;
+    const staffVal = document.getElementById('filterStaff').value.toUpperCase();
+    const taskVal = document.getElementById('filterTaskStatus').value.toUpperCase();
+    const callVal = document.getElementById('filterCallStatus').value.toUpperCase();
+    const typeVal = document.getElementById('filterCallType').value.toUpperCase();
+
+    const filtered = rawData.filter(item => {
+      const itemDate = getISOFromDate(item['REG DATE']);
+      
+      let dateMatch = true;
+      if (fromDate && toDate) {
+        dateMatch = itemDate >= fromDate && itemDate <= toDate;
+      } else if (fromDate) {
+        dateMatch = itemDate >= fromDate;
+      } else if (toDate) {
+        dateMatch = itemDate <= toDate;
+      }
+
+      const staffMatch = !staffVal || (item['ASSIGNED TO'] || '').toString().trim().toUpperCase() === staffVal;
+      const taskMatch = !taskVal || (item['TASK STATUS'] || '').toString().trim().toUpperCase() === taskVal;
+      const callMatch = !callVal || (item['CALL STATUS'] || '').toString().trim().toUpperCase() === callVal;
+      const typeMatch = !typeVal || (item['CALL TYPE'] || '').toString().trim().toUpperCase() === typeVal;
+
+      return dateMatch && staffMatch && taskMatch && callMatch && typeMatch;
+    });
+
+    renderCards(filtered);
+  }
+
+  function resetFilters() {
+    document.getElementById('fromDate').value = '';
+    document.getElementById('toDate').value = '';
+    document.getElementById('filterStaff').value = '';
+    document.getElementById('filterTaskStatus').value = '';
+    document.getElementById('filterCallStatus').value = '';
+    document.getElementById('filterCallType').value = '';
+    applyFilters();
+  }
+
+  function getISOFromDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    return date.toISOString().split('T')[0];
+  }
+
+  function formatDate(dateStr) {
+    const iso = getISOFromDate(dateStr);
+    if (!iso) return dateStr || '-';
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  loadData();
+</script>
+
+</body>
+</html>
