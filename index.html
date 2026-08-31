@@ -204,7 +204,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyJzoiQD-03VA2dzDcEDf1Si5nm9ptyqLir9gox8tr3-7IT6E77a_i2OJ17PfdEK5w1_g/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx1JoOReU2WvWkjHHXsHWYNRoEXjNiQ1Y4AXP9QRPLszZAAniO-cnnjWQUCXPEgSdFp/exec';
   
   let rawData = [];
   let chartInstance = null;
@@ -291,6 +291,9 @@
       const rawDate = getVal(item, ['REG DATE', 'Reg Date', 'DATE', 'Date', 'REGISTRATION DATE']);
       let isoDate = parseDateToISO(rawDate);
 
+      // 'ASSIGNED TO' കോളം കൃത്യമായി മാപ്പ് ചെയ്യുന്നു
+      const staffVal = getVal(item, ['ASSIGNED TO', 'ASSIGNEDTO', 'ASSIGNED', 'STAFF', 'STAFF NAME', 'STAFFNAME']);
+
       return {
         original: item,
         regDateISO: isoDate,
@@ -300,7 +303,7 @@
         callStatus: getVal(item, ['CALL STATUS', 'STATUS']),
         feedback: getVal(item, ['FEEDBACK', 'FEED BACK']),
         callType: getVal(item, ['CALL TYPE', 'TYPE']),
-        assignedTo: getVal(item, ['ASSIGNED TO', 'STAFF', 'ASSIGNED']),
+        assignedTo: staffVal || 'UNASSIGNED',
         taskStatus: getVal(item, ['TASK STATUS', 'TASK']),
         remarks: getVal(item, ['REMARKS', 'REMARK', 'NOTE'])
       };
@@ -312,9 +315,10 @@
 
   function populateDropdowns() {
     const staffSelect = document.getElementById('filterStaff');
+    
     const staffs = [...new Set(
       rawData.map(d => d.assignedTo.trim().toUpperCase())
-             .filter(name => Boolean(name) && name !== 'ASSIGNED TO' && name !== 'STAFF')
+             .filter(name => Boolean(name) && !['ASSIGNED TO', 'STAFF', 'STAFF NAME', 'ASSIGNED'].includes(name))
     )].sort();
 
     staffSelect.innerHTML = '<option value="">All Staffs</option>';
@@ -348,7 +352,7 @@
 
     const staffs = [...new Set(
       rawData.map(d => d.assignedTo.trim().toUpperCase())
-             .filter(name => Boolean(name) && name !== 'ASSIGNED TO' && name !== 'STAFF')
+             .filter(name => Boolean(name) && !['ASSIGNED TO', 'STAFF', 'STAFF NAME', 'ASSIGNED'].includes(name))
     )].sort();
     
     if (staffs.length === 0) {
@@ -375,7 +379,6 @@
 
     document.getElementById('staffReport').innerHTML = html;
     
-    // മാസങ്ങൾ തിരിച്ചു ലൈൻ ഗ്രാഫ് തയ്യാറാക്കുന്നു
     renderMonthlyLineChart(filteredByDateData);
   }
 
@@ -386,7 +389,7 @@
       if (item.regDateISO) {
         const parts = item.regDateISO.split('-');
         if (parts.length >= 2) {
-          const yearMonthKey = `${parts[0]}-${parts[1]}`; // YYYY-MM
+          const yearMonthKey = `${parts[0]}-${parts[1]}`;
           
           if (!monthMap[yearMonthKey]) {
             monthMap[yearMonthKey] = { total: 0, completed: 0, pending: 0 };
@@ -587,7 +590,6 @@
     doc.save("Staff_Performance_Report.pdf");
   }
 
-  // Start Load
   fetchDataFromNetwork();
 </script>
 
