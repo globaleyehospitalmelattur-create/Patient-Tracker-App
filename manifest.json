@@ -1,0 +1,16 @@
+{
+  "name": "Patient Tracker",
+  "short_name": "Tracker",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f0f4f8",
+  "theme_color": "#2b6cb0",
+  "icons": [
+    {
+      "src": "https://lh3.googleusercontent.com/d/17icwijGR2PT4sa7mteOgf_PozoQP3a4d",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
