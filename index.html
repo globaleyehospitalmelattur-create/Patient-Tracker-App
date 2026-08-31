@@ -213,7 +213,8 @@
     if (!item) return '';
     const itemKeys = Object.keys(item);
     for (let k of keys) {
-      const match = itemKeys.find(ik => ik.trim().toLowerCase() === k.toLowerCase());
+      // Spaces, case sensitivity എന്നിവ പരിഹരിക്കാനുള്ള റോബസ്റ്റ് മാപ്പിംഗ്
+      const match = itemKeys.find(ik => ik.replace(/\s+/g, '').toLowerCase() === k.replace(/\s+/g, '').toLowerCase());
       if (match && item[match] !== undefined && item[match] !== null) {
         return item[match].toString().trim();
       }
@@ -291,8 +292,13 @@
       const rawDate = getVal(item, ['REG DATE', 'Reg Date', 'DATE', 'Date', 'REGISTRATION DATE']);
       let isoDate = parseDateToISO(rawDate);
 
-      // 'ASSIGNED TO' കോളം കൃത്യമായി മാപ്പ് ചെയ്യുന്നു
-      const staffVal = getVal(item, ['ASSIGNED TO', 'ASSIGNEDTO', 'ASSIGNED', 'STAFF', 'STAFF NAME', 'STAFFNAME']);
+      // Assigned To ഫീൽഡ് വേർതിരിച്ചെടുക്കുന്നു
+      let staffVal = getVal(item, ['ASSIGNED TO', 'ASSIGNEDTO', 'ASSIGNED', 'STAFF', 'STAFF NAME', 'STAFFNAME']);
+      
+      // Blank ആയാൽ UNASSIGNED എന്ന് ഓട്ടോമാറ്റിക് ആക്കുന്നു
+      if (!staffVal) {
+        staffVal = 'UNASSIGNED';
+      }
 
       return {
         original: item,
@@ -303,7 +309,7 @@
         callStatus: getVal(item, ['CALL STATUS', 'STATUS']),
         feedback: getVal(item, ['FEEDBACK', 'FEED BACK']),
         callType: getVal(item, ['CALL TYPE', 'TYPE']),
-        assignedTo: staffVal || 'UNASSIGNED',
+        assignedTo: staffVal.toUpperCase(),
         taskStatus: getVal(item, ['TASK STATUS', 'TASK']),
         remarks: getVal(item, ['REMARKS', 'REMARK', 'NOTE'])
       };
@@ -316,6 +322,7 @@
   function populateDropdowns() {
     const staffSelect = document.getElementById('filterStaff');
     
+    // ഡാറ്റയിലുള്ള എല്ലാ Staff അംഗങ്ങളെയും ഓട്ടോമാറ്റിക് ആയി ഡൈനാമിക് ലിസ്റ്റാക്കുന്നു
     const staffs = [...new Set(
       rawData.map(d => d.assignedTo.trim().toUpperCase())
              .filter(name => Boolean(name) && !['ASSIGNED TO', 'STAFF', 'STAFF NAME', 'ASSIGNED'].includes(name))
@@ -504,7 +511,7 @@
           <div><strong>Call Status:</strong> ${item.callStatus || '-'}</div>
           <div><strong>Feedback:</strong> ${item.feedback || '-'}</div>
           <div><strong>Call Type:</strong> ${item.callType || '-'}</div>
-          <div class="full-width"><strong>Assigned To:</strong> ${item.assignedTo || '-'}</div>
+          <div class="full-width"><strong>Assigned To:</strong> ${item.assignedTo || 'UNASSIGNED'}</div>
           <div class="full-width ${!isCompleted ? 'remarks-box' : ''}">
             <strong>Remarks:</strong> ${remarks}
           </div>
