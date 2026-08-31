@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Patient Call Tracker & Monthly Analytics</title>
 
-  <!-- Chart.js & Export Libraries -->
+  <!-- Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -13,7 +13,7 @@
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f0f4f8; padding: 12px; color: #333; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #f0f4f8; padding: 12px; color: #333; }
     
     .container { max-width: 100%; margin: 0 auto; }
     header { 
@@ -39,7 +39,6 @@
       font-weight: bold;
       cursor: pointer;
     }
-    .btn-refresh-top:active { background: rgba(255, 255, 255, 0.4); }
 
     .card { background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 12px; }
     .card h3 { font-size: 0.85rem; color: #4a5568; margin-bottom: 8px; text-transform: uppercase; }
@@ -51,7 +50,7 @@
     .btn-pdf { background-color: #c53030; }
 
     .table-responsive { width: 100%; overflow-x: auto; }
-    .report-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-bottom: 8px; }
+    .report-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 8px; }
     .report-table th, .report-table td { border: 1px solid #e2e8f0; padding: 8px 4px; text-align: center; }
     .report-table th { background-color: #edf2f7; color: #2d3748; font-weight: bold; }
 
@@ -113,7 +112,7 @@
     <button class="btn-refresh-top" onclick="fetchDataFromNetwork()">🔄 Refresh</button>
   </header>
 
-  <!-- Staff & Unassigned Performance Report Table -->
+  <!-- Staff Summary Table -->
   <div class="card">
     <div class="report-header">
       <h3 id="reportTitle" style="margin-bottom:0;">Staff & Unassigned Call Report</h3>
@@ -140,7 +139,7 @@
     </div>
   </div>
 
-  <!-- Monthly Line Graph (Jan to Dec) -->
+  <!-- Monthly Graph (Jan - Dec) -->
   <div class="card">
     <h3>12 Months Call Trend (Jan - Dec)</h3>
     <div class="chart-container">
@@ -208,52 +207,49 @@
 </div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzfWPIRFS_ih4CIQDhVshJeVdRfvhe8NPg5EIJ2kverZV7QXPBHVVZx__bjhTypS6FW2w/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwB_pMhB-72hxpuYrMtftBpihiZQOrZMH1EUfQU622RVtNP_sneyHlgGvdFQsQ97z7r/exec';
   
   let rawData = [];
   let chartInstance = null;
 
-  // സ്പേസും Case-ഉം പരിഗണിക്കാതെ Header കണ്ടുപിടിക്കുന്ന ഫംഗ്ഷൻ
-  function getVal(item, keys) {
+  // സ്പെല്ലിംഗ്, സ്പേസ്, ക്യാപിറ്റൽ അക്ഷരങ്ങൾ എന്നിവ തനിയെ മാച്ച് ചെയ്യുന്ന ഫംഗ്ഷൻ
+  function getFlexibleValue(item, possibleKeys) {
     if (!item) return '';
     const itemKeys = Object.keys(item);
-    for (let k of keys) {
-      const match = itemKeys.find(ik => ik.replace(/[\s._-]+/g, '').toLowerCase() === k.replace(/[\s._-]+/g, '').toLowerCase());
-      if (match && item[match] !== undefined && item[match] !== null) {
-        return item[match].toString().trim();
+    
+    for (let target of possibleKeys) {
+      const targetClean = target.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const matchedKey = itemKeys.find(k => k.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === targetClean);
+      
+      if (matchedKey && item[matchedKey] !== undefined && item[matchedKey] !== null) {
+        return item[matchedKey].toString().trim();
       }
     }
     return '';
   }
 
-  // 12 മാസങ്ങളിലെയും തീയതി കൃത്യമായി Read ചെയ്യാനുള്ള Enhanced Parser
   function parseDateToISO(dateStr) {
     if (!dateStr) return '';
     let str = dateStr.toString().trim();
     if (!str) return '';
 
-    // YYYY-MM-DD format
     if (/^\d{4}-\d{1,2}-\d{1,2}/.test(str)) {
       const p = str.split('T')[0].split('-');
       return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
     }
 
-    // DD/MM/YYYY or DD-MM-YYYY format
     if (str.includes('/') || str.includes('-')) {
       const parts = str.split(/[\/\-]/);
       if (parts.length >= 3) {
-        // DD/MM/YYYY
         if (parts[2].length === 4) {
           return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
         }
-        // YYYY/MM/DD
         if (parts[0].length === 4) {
           return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
         }
       }
     }
     
-    // Fallback Javascript Standard Date Parse
     const d = new Date(str);
     if (!isNaN(d.getTime())) {
       const y = d.getFullYear();
@@ -281,16 +277,9 @@
 
     try {
       const response = await fetch(SCRIPT_URL + '?nocache=' + new Date().getTime());
-      
-      if (!response.ok) {
-        throw new Error('HTTP Status: ' + response.status);
-      }
-
+      if (!response.ok) throw new Error('HTTP Status: ' + response.status);
       const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      if (data.error) throw new Error(data.error);
 
       processData(data);
 
@@ -299,33 +288,36 @@
     } catch (error) {
       console.error('Fetch Error:', error);
       statusMsg.className = 'error-msg';
-      statusMsg.innerHTML = '⚠️ <b>Data Load ചെയ്യാൻ സാധിച്ചില്ല!</b> Google App Script ആക്സസ് തടസ്സപ്പെട്ടിരിക്കുന്നു.';
+      statusMsg.innerHTML = '⚠️ <b>Data Load ചെയ്യാൻ സാധിച്ചില്ല!</b> Google Script Refresh ചെയ്തു നോക്കുക.';
     }
   }
 
   function processData(data) {
     rawData = data.map(item => {
-      const rawDate = getVal(item, ['REG DATE', 'REGDATE', 'DATE', 'REGISTRATION DATE']);
+      const rawDate = getFlexibleValue(item, ['REG DATE', 'REGDATE', 'DATE', 'REGISTRATION DATE']);
       let isoDate = parseDateToISO(rawDate);
 
-      // Assigned Staff കണ്ടുപിടിക്കുന്നു. പേര് ഇല്ലാത്ത സന്ദർഭങ്ങളിൽ 'UNASSIGNED' കാണിക്കും.
-      let staffVal = getVal(item, ['ASSIGNED TO', 'ASSIGNEDTO', 'ASSIGNED', 'STAFF', 'STAFF NAME', 'STAFFNAME']);
-      if (!staffVal || staffVal.toUpperCase() === 'UNDEFINED' || staffVal.toUpperCase() === 'NULL') {
+      // Assigned To കൃത്യമായി വായിക്കുന്നു
+      let staffVal = getFlexibleValue(item, ['ASSIGNED TO', 'ASSIGNEDTO', 'ASSIGNED', 'STAFF', 'STAFF NAME', 'STAFFNAME']);
+      if (!staffVal || staffVal.toUpperCase() === 'UNDEFINED' || staffVal.toUpperCase() === 'NULL' || staffVal === '') {
         staffVal = 'UNASSIGNED';
+      } else {
+        // പേരുകളിലെ ആദ്യ അക്ഷരം Capital ആക്കി ബാക്കി വലിപ്പം ക്രമീകരിക്കുന്നു
+        staffVal = staffVal.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
       }
 
       return {
         original: item,
         regDateISO: isoDate,
-        patientName: getVal(item, ['PATIENT NAME', 'NAME', 'PATIENT']),
-        patientId: getVal(item, ['PATIENT ID', 'ID', 'SL NO', 'SLNO']),
-        phone: getVal(item, ['PHN NO.', 'PHN NO', 'PHONE', 'PHONE NO', 'MOBILE', 'CONTACT']),
-        callStatus: getVal(item, ['CALL STATUS', 'STATUS']),
-        feedback: getVal(item, ['FEEDBACK', 'FEED BACK']),
-        callType: getVal(item, ['CALL TYPE', 'TYPE']),
-        assignedTo: staffVal.trim().toUpperCase(),
-        taskStatus: getVal(item, ['TASK STATUS', 'TASK']),
-        remarks: getVal(item, ['REMARKS', 'REMARK', 'NOTE'])
+        patientName: getFlexibleValue(item, ['PATIENT NAME', 'NAME', 'PATIENT']),
+        patientId: getFlexibleValue(item, ['PATIENT ID', 'ID', 'SL NO', 'SLNO']),
+        phone: getFlexibleValue(item, ['PHN NO.', 'PHN NO', 'PHONE', 'PHONE NO', 'MOBILE', 'CONTACT']),
+        callStatus: getFlexibleValue(item, ['CALL STATUS', 'STATUS']),
+        feedback: getFlexibleValue(item, ['FEEDBACK', 'FEED BACK']),
+        callType: getFlexibleValue(item, ['CALL TYPE', 'TYPE']),
+        assignedTo: staffVal.trim(),
+        taskStatus: getFlexibleValue(item, ['TASK STATUS', 'TASK']).toUpperCase(),
+        remarks: getFlexibleValue(item, ['REMARKS', 'REMARK', 'NOTE'])
       };
     });
 
@@ -336,11 +328,8 @@
   function populateDropdowns() {
     const staffSelect = document.getElementById('filterStaff');
     
-    // എല്ലാ സ്റ്റാഫുകളുടെയും പേരും UNASSIGNED അടക്കമുള്ള ലിസ്റ്റും ശേഖരിക്കുന്നു
-    const staffs = [...new Set(
-      rawData.map(d => d.assignedTo)
-             .filter(name => Boolean(name) && !['ASSIGNED TO', 'STAFF', 'STAFF NAME'].includes(name))
-    )].sort();
+    // ഷീറ്റിലുള്ള എല്ലാ ആളുകളുടെയും പേര് (Rahana, Kavya, Dinsha, Majida) വേർതിരിച്ചെടുക്കുന്നു
+    const staffs = [...new Set(rawData.map(d => d.assignedTo).filter(Boolean))].sort();
 
     staffSelect.innerHTML = '<option value="">All Staffs & Unassigned</option>';
     staffs.forEach(s => {
@@ -362,7 +351,6 @@
     });
   }
 
-  // ഓരോരുത്തരുടെയും കോൾ കണക്കുകളും UNASSIGNED തുകയും വേർതിരിക്കുന്ന ഫംഗ്ഷൻ
   function updatePerformanceReport(filteredByDateData, fromDate, toDate) {
     const reportTitle = document.getElementById('reportTitle');
     
@@ -372,10 +360,7 @@
       reportTitle.innerText = "Overall Staff Call Report (Jan - Dec)";
     }
 
-    const staffs = [...new Set(
-      rawData.map(d => d.assignedTo)
-             .filter(name => Boolean(name) && !['ASSIGNED TO', 'STAFF', 'STAFF NAME'].includes(name))
-    )].sort();
+    const staffs = [...new Set(rawData.map(d => d.assignedTo).filter(Boolean))].sort();
     
     if (staffs.length === 0) {
       document.getElementById('staffReport').innerHTML = '<tr><td colspan="4">No Data Found</td></tr>';
@@ -387,7 +372,7 @@
     let totalPendingSum = 0;
 
     let rowsHtml = staffs.map(staff => {
-      const staffData = filteredByDateData.filter(d => d.assignedTo === staff);
+      const staffData = filteredByDateData.filter(d => d.assignedTo.toLowerCase() === staff.toLowerCase());
       const totalCalls = staffData.length;
       const completed = staffData.filter(d => d.taskStatus === 'COMPLETED').length;
       const pending = totalCalls - completed;
@@ -396,7 +381,7 @@
       totalCompletedSum += completed;
       totalPendingSum += pending;
 
-      const isUnassigned = staff === 'UNASSIGNED';
+      const isUnassigned = staff.toUpperCase() === 'UNASSIGNED';
       const displayName = isUnassigned ? '<span class="unassigned-text">⚠️ UNASSIGNED</span>' : `<strong>${staff}</strong>`;
 
       return `
@@ -409,7 +394,6 @@
       `;
     }).join('');
 
-    // Total Row ചേർക്കുന്നു
     rowsHtml += `
       <tr style="background-color:#edf2f7; font-weight:bold; border-top:2px solid #cbd5e0;">
         <td>TOTAL OVERALL</td>
@@ -420,11 +404,9 @@
     `;
 
     document.getElementById('staffReport').innerHTML = rowsHtml;
-    
     renderMonthlyLineChart(filteredByDateData);
   }
 
-  // ജനുവരി മുതൽ ഡിസംബർ വരെയുള്ള 12 മാസങ്ങളിലെ ടോട്ടൽ, കംപ്ലീറ്റഡ്, പെൻഡിംഗ് ഗ്രാഫ്
   function renderMonthlyLineChart(filteredData) {
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const monthStats = Array(12).fill(0).map(() => ({ total: 0, completed: 0, pending: 0 }));
@@ -459,48 +441,16 @@
       data: {
         labels: monthNames,
         datasets: [
-          { 
-            label: 'Total Calls', 
-            data: totalData, 
-            borderColor: '#3182ce',
-            backgroundColor: 'rgba(49, 130, 206, 0.1)',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 4
-          },
-          { 
-            label: 'Completed', 
-            data: completedData, 
-            borderColor: '#38a169',
-            backgroundColor: 'rgba(56, 161, 105, 0.1)',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 4
-          },
-          { 
-            label: 'Pending', 
-            data: pendingData, 
-            borderColor: '#e53e3e',
-            backgroundColor: 'rgba(229, 62, 62, 0.1)',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 4
-          }
+          { label: 'Total Calls', data: totalData, borderColor: '#3182ce', backgroundColor: 'rgba(49, 130, 206, 0.1)', fill: true, tension: 0.3, pointRadius: 4 },
+          { label: 'Completed', data: completedData, borderColor: '#38a169', backgroundColor: 'rgba(56, 161, 105, 0.1)', fill: true, tension: 0.3, pointRadius: 4 },
+          { label: 'Pending', data: pendingData, borderColor: '#e53e3e', backgroundColor: 'rgba(229, 62, 62, 0.1)', fill: true, tension: 0.3, pointRadius: 4 }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { 
-          legend: { 
-            position: 'top', 
-            labels: { font: { size: 10 } } 
-          } 
-        },
-        scales: {
-          x: { ticks: { font: { size: 10 } } },
-          y: { beginAtZero: true, ticks: { precision: 0 } }
-        }
+        plugins: { legend: { position: 'top', labels: { font: { size: 10 } } } },
+        scales: { x: { ticks: { font: { size: 10 } } }, y: { beginAtZero: true, ticks: { precision: 0 } } }
       }
     });
   }
@@ -508,7 +458,6 @@
   function renderCards(data) {
     const container = document.getElementById('patientList');
     container.innerHTML = '';
-
     document.getElementById('recordCountBadge').innerText = `${data.length} Records`;
 
     if (data.length === 0) {
@@ -538,7 +487,7 @@
           <div><strong>Call Status:</strong> ${item.callStatus || '-'}</div>
           <div><strong>Feedback:</strong> ${item.feedback || '-'}</div>
           <div><strong>Call Type:</strong> ${item.callType || '-'}</div>
-          <div class="full-width"><strong>Assigned To:</strong> ${item.assignedTo === 'UNASSIGNED' ? '<span class="unassigned-text">UNASSIGNED</span>' : item.assignedTo}</div>
+          <div class="full-width"><strong>Assigned To:</strong> ${item.assignedTo.toUpperCase() === 'UNASSIGNED' ? '<span class="unassigned-text">UNASSIGNED</span>' : item.assignedTo}</div>
           <div class="full-width ${!isCompleted ? 'remarks-box' : ''}">
             <strong>Remarks:</strong> ${remarks}
           </div>
@@ -552,7 +501,7 @@
     const searchVal = document.getElementById('searchInput').value.toLowerCase();
     const fromDate = document.getElementById('fromDate').value;
     const toDate = document.getElementById('toDate').value;
-    const staffVal = document.getElementById('filterStaff').value.trim().toUpperCase();
+    const staffVal = document.getElementById('filterStaff').value.trim().toLowerCase();
     const taskVal = document.getElementById('filterTaskStatus').value.trim().toUpperCase();
     const callVal = document.getElementById('filterCallStatus').value.trim().toUpperCase();
     const typeVal = document.getElementById('filterCallType').value.trim().toUpperCase();
@@ -560,7 +509,6 @@
     const filteredByDate = rawData.filter(item => {
       if (!fromDate && !toDate) return true;
       if (!item.regDateISO) return true;
-
       if (fromDate && toDate) return item.regDateISO >= fromDate && item.regDateISO <= toDate;
       if (fromDate) return item.regDateISO >= fromDate;
       if (toDate) return item.regDateISO <= toDate;
@@ -573,15 +521,12 @@
       const nameMatch = item.patientName.toLowerCase().includes(searchVal);
       const phoneMatch = item.phone.includes(searchVal);
       const searchMatch = !searchVal || nameMatch || phoneMatch;
-
-      const staffMatch = !staffVal || item.assignedTo === staffVal;
+      
+      const staffMatch = !staffVal || item.assignedTo.toLowerCase() === staffVal;
       
       let taskMatch = true;
-      if (taskVal === 'COMPLETED') {
-        taskMatch = item.taskStatus === 'COMPLETED';
-      } else if (taskVal === 'PENDING') {
-        taskMatch = item.taskStatus !== 'COMPLETED';
-      }
+      if (taskVal === 'COMPLETED') taskMatch = item.taskStatus === 'COMPLETED';
+      else if (taskVal === 'PENDING') taskMatch = item.taskStatus !== 'COMPLETED';
 
       const callMatch = !callVal || item.callStatus.toUpperCase() === callVal;
       const typeMatch = !typeVal || item.callType.toUpperCase() === typeVal;
@@ -614,13 +559,7 @@
     doc = new jsPDF();
     doc.setFontSize(14);
     doc.text("Staff & Unassigned Call Performance Report", 14, 15);
-    doc.autoTable({
-      html: '#reportTable',
-      startY: 22,
-      theme: 'grid',
-      headStyles: { fillColor: [43, 108, 176] },
-      styles: { fontSize: 9, halign: 'center' }
-    });
+    doc.autoTable({ html: '#reportTable', startY: 22, theme: 'grid', headStyles: { fillColor: [43, 108, 176] }, styles: { fontSize: 9, halign: 'center' } });
     doc.save("Staff_Call_Report.pdf");
   }
 
