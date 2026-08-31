@@ -54,7 +54,7 @@
     .report-table th, .report-table td { border: 1px solid #e2e8f0; padding: 8px 4px; text-align: center; }
     .report-table th { background-color: #edf2f7; color: #2d3748; font-weight: bold; }
 
-    .chart-container { position: relative; width: 100%; height: 240px; margin-top: 10px; }
+    .chart-container { position: relative; width: 100%; height: 250px; margin-top: 10px; }
 
     .filter-box { background: white; padding: 12px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
     .filter-title { font-size: 0.85rem; font-weight: bold; color: #2d3748; margin-bottom: 8px; }
@@ -111,7 +111,7 @@
     <button class="btn-refresh-top" onclick="fetchDataFromNetwork()">🔄 Refresh</button>
   </header>
 
-  <!-- Staff Report & Chart -->
+  <!-- Staff Report -->
   <div class="card">
     <div class="report-header">
       <h3 id="reportTitle" style="margin-bottom:0;">Staff Performance Report</h3>
@@ -134,9 +134,13 @@
         <tr><td colspan="4">Loading Report...</td></tr>
       </tbody>
     </table>
+  </div>
 
+  <!-- Monthly Line Graph -->
+  <div class="card">
+    <h3>Monthly Trend (Line Graph)</h3>
     <div class="chart-container">
-      <canvas id="performanceChart"></canvas>
+      <canvas id="monthlyChart"></canvas>
     </div>
   </div>
 
@@ -349,13 +353,8 @@
     
     if (staffs.length === 0) {
       document.getElementById('staffReport').innerHTML = '<tr><td colspan="4">No Staff Data Found</td></tr>';
-      if (chartInstance) chartInstance.destroy();
       return;
     }
-
-    const totalData = [];
-    const completedData = [];
-    const pendingData = [];
 
     const html = staffs.map(staff => {
       const staffData = filteredByDateData.filter(d => d.assignedTo.trim().toUpperCase() === staff);
@@ -363,10 +362,6 @@
       const totalCalls = staffData.length;
       const completed = staffData.filter(d => d.taskStatus.trim().toUpperCase() === 'COMPLETED').length;
       const pending = totalCalls - completed;
-
-      totalData.push(totalCalls);
-      completedData.push(completed);
-      pendingData.push(pending);
 
       return `
         <tr>
@@ -379,12 +374,47 @@
     }).join('');
 
     document.getElementById('staffReport').innerHTML = html;
-    renderPerformanceChart(staffs, totalData, completedData, pendingData);
+    
+    // മാസങ്ങൾ തിരിച്ചു ലൈൻ ഗ്രാഫ് തയ്യാറാക്കുന്നു
+    renderMonthlyLineChart(filteredByDateData);
   }
 
-  function renderPerformanceChart(labels, totalData, completedData, pendingData) {
-    const ctx = document.getElementById('performanceChart').getContext('2d');
-    
+  function renderMonthlyLineChart(filteredData) {
+    const monthMap = {};
+
+    filteredData.forEach(item => {
+      if (item.regDateISO) {
+        const parts = item.regDateISO.split('-');
+        if (parts.length >= 2) {
+          const yearMonthKey = `${parts[0]}-${parts[1]}`; // YYYY-MM
+          
+          if (!monthMap[yearMonthKey]) {
+            monthMap[yearMonthKey] = { total: 0, completed: 0, pending: 0 };
+          }
+
+          monthMap[yearMonthKey].total += 1;
+          if (item.taskStatus.trim().toUpperCase() === 'COMPLETED') {
+            monthMap[yearMonthKey].completed += 1;
+          } else {
+            monthMap[yearMonthKey].pending += 1;
+          }
+        }
+      }
+    });
+
+    const sortedMonths = Object.keys(monthMap).sort();
+
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const labels = sortedMonths.map(key => {
+      const [y, m] = key.split('-');
+      return `${monthNames[parseInt(m) - 1]} ${y}`;
+    });
+
+    const totalData = sortedMonths.map(k => monthMap[k].total);
+    const completedData = sortedMonths.map(k => monthMap[k].completed);
+    const pendingData = sortedMonths.map(k => monthMap[k].pending);
+
+    const ctx = document.getElementById('monthlyChart').getContext('2d');
     if (chartInstance) chartInstance.destroy();
 
     chartInstance = new Chart(ctx, {
