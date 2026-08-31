@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Patient Tracker</title>
 
-  <!-- PWA & Mobile Meta -->
   <meta name="theme-color" content="#2b6cb0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Patient Tracker">
-  <meta name="format-detection" content="telephone=no"> <!-- Auto Call Link Disable -->
+  <meta name="format-detection" content="telephone=no">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063822.png">
   <link rel="manifest" id="manifestPlaceholder">
 
@@ -23,7 +22,7 @@
     header { background: #2b6cb0; color: white; padding: 14px; border-radius: 12px; margin-bottom: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
     header h1 { font-size: 1.1rem; font-weight: 600; }
 
-    /* Performance Summary Mobile Box */
+    /* Performance Dashboard */
     .card { background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 12px; }
     .card h3 { font-size: 0.85rem; color: #4a5568; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
     
@@ -31,9 +30,9 @@
     .report-table th, .report-table td { border: 1px solid #e2e8f0; padding: 6px 4px; text-align: center; }
     .report-table th { background-color: #edf2f7; color: #2d3748; font-weight: bold; }
 
-    /* Mobile Search & Filter Box */
+    /* Mobile Search & Filters */
     .filter-box { background: white; padding: 12px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-    .filter-title { font-size: 0.85rem; font-weight: bold; color: #2d3748; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .filter-title { font-size: 0.85rem; font-weight: bold; color: #2d3748; margin-bottom: 8px; }
     
     .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     
@@ -42,7 +41,7 @@
     
     .btn-reset { background: #e2e8f0; border: none; padding: 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; color: #4a5568; margin-top: 8px; width: 100%; cursor: pointer; }
 
-    /* Mobile Data Cards */
+    /* Data Cards */
     .data-list { display: flex; flex-direction: column; gap: 10px; }
     .data-card { background: white; border-radius: 10px; padding: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-left: 4px solid #cbd5e0; }
     
@@ -60,9 +59,7 @@
     .full-width { grid-column: span 2; }
     .remarks-box { color: #e53e3e; font-weight: 600; background: #fff; padding: 6px; border-radius: 6px; border: 1px dashed #feb2b2; margin-top: 2px; }
 
-    /* Disable link styles on mobile */
     .no-link, a[href^="tel"] { color: inherit !important; text-decoration: none !important; pointer-events: none !important; cursor: default !important; }
-
     .loader { text-align: center; padding: 15px; font-size: 0.85rem; font-weight: bold; color: #4a5568; }
   </style>
 </head>
@@ -73,14 +70,13 @@
     <h1>Patient Call Tracker</h1>
   </header>
 
-  <!-- Today's Performance Summary -->
   <div class="card">
-    <h3>Today Staff Performance Report</h3>
+    <h3 id="reportTitle">Staff Performance Report</h3>
     <table class="report-table">
       <thead>
         <tr>
           <th>Staff Name</th>
-          <th>Today Calls</th>
+          <th>Total Calls</th>
           <th>Completed</th>
           <th>Pending</th>
         </tr>
@@ -91,11 +87,8 @@
     </table>
   </div>
 
-  <!-- Mobile Search & Filter -->
   <div class="filter-box">
-    <div class="filter-title">
-      <span>Search & Filters</span>
-    </div>
+    <div class="filter-title">Search & Filters</div>
     
     <div class="filter-grid">
       <div>
@@ -149,8 +142,7 @@
     <button class="btn-reset" onclick="resetFilters()">Reset All Filters</button>
   </div>
 
-  <!-- Patient Cards View -->
-  <div id="loader" class="loader">Loading Data from Google Sheets...</div>
+  <div id="loader" class="loader">Loading Data...</div>
   <div class="data-list" id="patientList"></div>
 </div>
 
@@ -159,7 +151,7 @@
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxxYnwMk8SBZPcN5M86xFtME-zRbTGwiAc373SgmhDMlIwZRTKVrw6oEfFJJOTvnnHOvA/exec';
   let rawData = [];
 
-  // Dynamic PWA Manifest Setup
+  // Mobile PWA Setup Dynamic
   const manifestData = {
     "name": "Patient Tracker",
     "short_name": "Tracker",
@@ -173,7 +165,14 @@
   const blob = new Blob([stringManifest], {type: 'application/json'});
   document.getElementById('manifestPlaceholder').setAttribute('href', URL.createObjectURL(blob));
 
-  // Fetch Data
+  // Set Default Date to Today
+  function setDefaultTodayDates() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('fromDate').value = today;
+    document.getElementById('toDate').value = today;
+  }
+
+  // Fetch Data from Google Sheets API
   async function loadData() {
     try {
       const response = await fetch(SCRIPT_URL);
@@ -181,14 +180,14 @@
       document.getElementById('loader').style.display = 'none';
 
       populateStaffDropdown(rawData);
-      generateTodayReport(rawData);
+      setDefaultTodayDates();
       applyFilters();
     } catch (error) {
-      document.getElementById('loader').innerText = 'Data load ചെയ്യാൻ സാധിച്ചില്ല. Apps Script URL പരിശോധിച്ച് ഉറപ്പുവരുത്തുക.';
+      document.getElementById('loader').innerText = 'Data load ചെയ്യാൻ കഴിഞ്ഞില്ല. Apps Script URL ഉറപ്പുവരുത്തുക.';
     }
   }
 
-  // Dynamic Staff List
+  // Auto Populate Dynamic Staff Names
   function populateStaffDropdown(data) {
     const staffSelect = document.getElementById('filterStaff');
     const staffs = [...new Set(data.map(item => (item['ASSIGNED TO'] || '').toString().trim().toUpperCase()).filter(Boolean))];
@@ -202,10 +201,19 @@
     });
   }
 
-  // Today's Performance Report
-  function generateTodayReport(data) {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const staffs = [...new Set(data.map(item => (item['ASSIGNED TO'] || '').toString().trim().toUpperCase()).filter(Boolean))];
+  // Update Performance Summary Card Dynamically by Selected Date Range
+  function updatePerformanceReport(filteredData, fromDate, toDate) {
+    const reportTitle = document.getElementById('reportTitle');
+    
+    if (fromDate && toDate && fromDate === toDate) {
+      reportTitle.innerHTML = `Today Staff Performance Report <span style="font-size:0.75rem; color:#2b6cb0;">(${formatDate(fromDate)})</span>`;
+    } else if (fromDate && toDate) {
+      reportTitle.innerHTML = `Staff Performance Report <span style="font-size:0.75rem; color:#2b6cb0;">(${formatDate(fromDate)} to ${formatDate(toDate)})</span>`;
+    } else {
+      reportTitle.innerText = "Overall Staff Performance Report";
+    }
+
+    const staffs = [...new Set(rawData.map(item => (item['ASSIGNED TO'] || '').toString().trim().toUpperCase()).filter(Boolean))];
     
     if (staffs.length === 0) {
       document.getElementById('staffReport').innerHTML = '<tr><td colspan="4">No Staff Data Found</td></tr>';
@@ -213,17 +221,16 @@
     }
 
     const html = staffs.map(staff => {
-      const staffData = data.filter(d => (d['ASSIGNED TO'] || '').toString().trim().toUpperCase() === staff);
-      const todayData = staffData.filter(d => getISOFromDate(d['REG DATE']) === todayStr);
+      const staffData = filteredData.filter(d => (d['ASSIGNED TO'] || '').toString().trim().toUpperCase() === staff);
 
-      const todayCalls = todayData.length;
-      const completed = todayData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'COMPLETED').length;
-      const pending = todayData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'PENDING').length;
+      const totalCalls = staffData.length;
+      const completed = staffData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'COMPLETED').length;
+      const pending = staffData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'PENDING').length;
 
       return `
         <tr>
           <td><strong>${staff}</strong></td>
-          <td>${todayCalls}</td>
+          <td>${totalCalls}</td>
           <td style="color:green; font-weight:bold;">${completed}</td>
           <td style="color:red; font-weight:bold;">${pending}</td>
         </tr>
@@ -274,7 +281,7 @@
     });
   }
 
-  // Filter Logic
+  // Apply Search & Date Filter Rules
   function applyFilters() {
     const fromDate = document.getElementById('fromDate').value;
     const toDate = document.getElementById('toDate').value;
@@ -283,9 +290,9 @@
     const callVal = document.getElementById('filterCallStatus').value.toUpperCase();
     const typeVal = document.getElementById('filterCallType').value.toUpperCase();
 
-    const filtered = rawData.filter(item => {
+    // Filter Data by Date Range
+    const filteredByDate = rawData.filter(item => {
       const itemDate = getISOFromDate(item['REG DATE']);
-      
       let dateMatch = true;
       if (fromDate && toDate) {
         dateMatch = itemDate >= fromDate && itemDate <= toDate;
@@ -294,25 +301,31 @@
       } else if (toDate) {
         dateMatch = itemDate <= toDate;
       }
+      return dateMatch;
+    });
 
+    // Update Performance Table by Selected Range
+    updatePerformanceReport(filteredByDate, fromDate, toDate);
+
+    // Filter Data Cards by other selections
+    const finalFiltered = filteredByDate.filter(item => {
       const staffMatch = !staffVal || (item['ASSIGNED TO'] || '').toString().trim().toUpperCase() === staffVal;
       const taskMatch = !taskVal || (item['TASK STATUS'] || '').toString().trim().toUpperCase() === taskVal;
       const callMatch = !callVal || (item['CALL STATUS'] || '').toString().trim().toUpperCase() === callVal;
       const typeMatch = !typeVal || (item['CALL TYPE'] || '').toString().trim().toUpperCase() === typeVal;
 
-      return dateMatch && staffMatch && taskMatch && callMatch && typeMatch;
+      return staffMatch && taskMatch && callMatch && typeMatch;
     });
 
-    renderCards(filtered);
+    renderCards(finalFiltered);
   }
 
   function resetFilters() {
-    document.getElementById('fromDate').value = '';
-    document.getElementById('toDate').value = '';
     document.getElementById('filterStaff').value = '';
     document.getElementById('filterTaskStatus').value = '';
     document.getElementById('filterCallStatus').value = '';
     document.getElementById('filterCallType').value = '';
+    setDefaultTodayDates();
     applyFilters();
   }
 
