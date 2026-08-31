@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Patient Tracker App</title>
+  <title>Patient Tracker</title>
 
-  <!-- PWA & Mobile Optimization -->
+  <!-- PWA & Mobile Meta -->
   <meta name="theme-color" content="#2b6cb0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Patient Tracker">
+  <meta name="format-detection" content="telephone=no"> <!-- Auto Call Link Disable -->
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063822.png">
   <link rel="manifest" id="manifestPlaceholder">
 
@@ -17,82 +18,84 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: #f0f4f8; padding: 12px; color: #333; -webkit-tap-highlight-color: transparent; }
     
-    .container { max-width: 1200px; margin: 0 auto; }
+    .container { max-width: 100%; margin: 0 auto; }
     
-    header { background: #2b6cb0; color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    header h1 { font-size: 1.2rem; }
+    header { background: #2b6cb0; color: white; padding: 14px; border-radius: 12px; margin-bottom: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+    header h1 { font-size: 1.1rem; font-weight: 600; }
 
-    /* Performance Dashboard */
-    .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px; }
-    .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-    .card h3 { font-size: 0.9rem; color: #4a5568; margin-bottom: 8px; }
+    /* Performance Summary Mobile Box */
+    .card { background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 12px; }
+    .card h3 { font-size: 0.85rem; color: #4a5568; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
     
-    .report-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .report-table th, .report-table td { border: 1px solid #e2e8f0; padding: 8px; text-align: center; }
-    .report-table th { background-color: #edf2f7; color: #2d3748; }
+    .report-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .report-table th, .report-table td { border: 1px solid #e2e8f0; padding: 6px 4px; text-align: center; }
+    .report-table th { background-color: #edf2f7; color: #2d3748; font-weight: bold; }
 
-    /* Filter Section */
-    .filter-box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-    .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
+    /* Mobile Search & Filter Box */
+    .filter-box { background: white; padding: 12px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    .filter-title { font-size: 0.85rem; font-weight: bold; color: #2d3748; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
     
-    label { font-size: 0.75rem; font-weight: bold; color: #4a5568; display: block; margin-bottom: 3px; }
-    select, input { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.85rem; background: #fff; outline: none; }
+    .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     
-    .btn-reset { background: #e2e8f0; border: none; padding: 10px; border-radius: 8px; font-weight: bold; color: #4a5568; margin-top: 10px; width: 100%; cursor: pointer; }
+    label { font-size: 0.7rem; font-weight: 600; color: #4a5568; display: block; margin-bottom: 2px; }
+    select, input { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.8rem; background: #fff; outline: none; appearance: none; -webkit-appearance: none; }
+    
+    .btn-reset { background: #e2e8f0; border: none; padding: 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; color: #4a5568; margin-top: 8px; width: 100%; cursor: pointer; }
 
-    /* Patient Cards for Mobile */
-    .data-list { display: flex; flex-direction: column; gap: 12px; }
-    .data-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #cbd5e0; }
+    /* Mobile Data Cards */
+    .data-list { display: flex; flex-direction: column; gap: 10px; }
+    .data-card { background: white; border-radius: 10px; padding: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-left: 4px solid #cbd5e0; }
     
-    /* Red Highlight for Pending Tasks */
-    .data-card.pending { border-left-color: #e53e3e; background-color: #fff5f5; }
+    .data-card.pending { border-left-color: #e53e3e; background-color: #fff8f8; }
     .data-card.completed { border-left-color: #38a169; }
     
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #edf2f7; padding-bottom: 6px; }
-    .patient-name { font-weight: bold; font-size: 1rem; color: #2d3748; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #edf2f7; padding-bottom: 4px; }
+    .patient-name { font-weight: bold; font-size: 0.95rem; color: #2d3748; }
     
-    .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
-    .badge-pending { background: #fed7d7; color: #9b2c2c; animation: pulse 1.5s infinite; }
+    .badge { padding: 3px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: bold; text-transform: uppercase; }
+    .badge-pending { background: #fed7d7; color: #9b2c2c; }
     .badge-completed { background: #c6f6d5; color: #22543d; }
     
-    .card-body { font-size: 0.85rem; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; color: #4a5568; }
+    .card-body { font-size: 0.8rem; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; color: #4a5568; }
     .full-width { grid-column: span 2; }
-    .remarks-text { color: #e53e3e; font-weight: bold; background: #fff; padding: 6px; border-radius: 6px; border: 1px dashed #feb2b2; }
+    .remarks-box { color: #e53e3e; font-weight: 600; background: #fff; padding: 6px; border-radius: 6px; border: 1px dashed #feb2b2; margin-top: 2px; }
 
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-    .loader { text-align: center; padding: 20px; font-weight: bold; color: #4a5568; }
+    /* Disable link styles on mobile */
+    .no-link, a[href^="tel"] { color: inherit !important; text-decoration: none !important; pointer-events: none !important; cursor: default !important; }
+
+    .loader { text-align: center; padding: 15px; font-size: 0.85rem; font-weight: bold; color: #4a5568; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <header>
-    <h1>Patient Call Management Dashboard</h1>
+    <h1>Patient Call Tracker</h1>
   </header>
 
-  <!-- Performance Summary -->
-  <div class="dashboard-grid">
-    <div class="card">
-      <h3>Daily Staff Performance Report</h3>
-      <table class="report-table">
-        <thead>
-          <tr>
-            <th>Staff</th>
-            <th>Today Calls</th>
-            <th>Completed</th>
-            <th>Pending</th>
-          </tr>
-        </thead>
-        <tbody id="staffReport">
-          <tr><td colspan="4">Loading...</td></tr>
-        </tbody>
-      </table>
-    </div>
+  <!-- Today's Performance Summary -->
+  <div class="card">
+    <h3>Today Staff Performance Report</h3>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Staff Name</th>
+          <th>Today Calls</th>
+          <th>Completed</th>
+          <th>Pending</th>
+        </tr>
+      </thead>
+      <tbody id="staffReport">
+        <tr><td colspan="4">Loading Report...</td></tr>
+      </tbody>
+    </table>
   </div>
 
-  <!-- Filters -->
+  <!-- Mobile Search & Filter -->
   <div class="filter-box">
-    <strong>Search & Filters</strong>
+    <div class="filter-title">
+      <span>Search & Filters</span>
+    </div>
     
     <div class="filter-grid">
       <div>
@@ -103,15 +106,14 @@
         <label>To Date</label>
         <input type="date" id="toDate" onchange="applyFilters()">
       </div>
+
       <div>
-        <label>Staff</label>
+        <label>Assigned Staff</label>
         <select id="filterStaff" onchange="applyFilters()">
           <option value="">All Staffs</option>
-          <option value="KAVYA">Kavya</option>
-          <option value="MAJIDA">Majida</option>
-          <option value="DINSHA">Dinsha</option>
         </select>
       </div>
+
       <div>
         <label>Task Status</label>
         <select id="filterTaskStatus" onchange="applyFilters()">
@@ -120,6 +122,7 @@
           <option value="COMPLETED">COMPLETED Only</option>
         </select>
       </div>
+
       <div>
         <label>Call Status</label>
         <select id="filterCallStatus" onchange="applyFilters()">
@@ -130,6 +133,7 @@
           <option value="NOREACHABLE">NOREACHABLE</option>
         </select>
       </div>
+
       <div>
         <label>Call Type</label>
         <select id="filterCallType" onchange="applyFilters()">
@@ -141,19 +145,21 @@
         </select>
       </div>
     </div>
+    
     <button class="btn-reset" onclick="resetFilters()">Reset All Filters</button>
   </div>
 
-  <!-- Patient List -->
+  <!-- Patient Cards View -->
   <div id="loader" class="loader">Loading Data from Google Sheets...</div>
   <div class="data-list" id="patientList"></div>
 </div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxm4f3bS1s_6h-Yvwn0X5JQFqDTD0vZjQ1a9m-mLCbvegrh_vLh-anM3g5DY2Zbk4IIAA/exec';
+  // നിങ്ങളുടെ പുതിയ Apps Script Web App URL ഇവിടെ നൽകുക
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxxYnwMk8SBZPcN5M86xFtME-zRbTGwiAc373SgmhDMlIwZRTKVrw6oEfFJJOTvnnHOvA/exec';
   let rawData = [];
 
-  // PWA Manifest setup
+  // Dynamic PWA Manifest Setup
   const manifestData = {
     "name": "Patient Tracker",
     "short_name": "Tracker",
@@ -167,26 +173,73 @@
   const blob = new Blob([stringManifest], {type: 'application/json'});
   document.getElementById('manifestPlaceholder').setAttribute('href', URL.createObjectURL(blob));
 
-  // Fetch Data from Google Sheets
+  // Fetch Data
   async function loadData() {
     try {
       const response = await fetch(SCRIPT_URL);
       rawData = await response.json();
       document.getElementById('loader').style.display = 'none';
-      generateReport(rawData);
+
+      populateStaffDropdown(rawData);
+      generateTodayReport(rawData);
       applyFilters();
     } catch (error) {
-      document.getElementById('loader').innerText = 'Data load ചെയ്യാൻ കഴിഞ്ഞില്ല! Apps Script URL പരിശോധിക്കുക.';
+      document.getElementById('loader').innerText = 'Data load ചെയ്യാൻ സാധിച്ചില്ല. Apps Script URL പരിശോധിച്ച് ഉറപ്പുവരുത്തുക.';
     }
   }
 
-  // Render Data List
+  // Dynamic Staff List
+  function populateStaffDropdown(data) {
+    const staffSelect = document.getElementById('filterStaff');
+    const staffs = [...new Set(data.map(item => (item['ASSIGNED TO'] || '').toString().trim().toUpperCase()).filter(Boolean))];
+
+    staffSelect.innerHTML = '<option value="">All Staffs</option>';
+    staffs.forEach(staff => {
+      const option = document.createElement('option');
+      option.value = staff;
+      option.textContent = staff;
+      staffSelect.appendChild(option);
+    });
+  }
+
+  // Today's Performance Report
+  function generateTodayReport(data) {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const staffs = [...new Set(data.map(item => (item['ASSIGNED TO'] || '').toString().trim().toUpperCase()).filter(Boolean))];
+    
+    if (staffs.length === 0) {
+      document.getElementById('staffReport').innerHTML = '<tr><td colspan="4">No Staff Data Found</td></tr>';
+      return;
+    }
+
+    const html = staffs.map(staff => {
+      const staffData = data.filter(d => (d['ASSIGNED TO'] || '').toString().trim().toUpperCase() === staff);
+      const todayData = staffData.filter(d => getISOFromDate(d['REG DATE']) === todayStr);
+
+      const todayCalls = todayData.length;
+      const completed = todayData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'COMPLETED').length;
+      const pending = todayData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'PENDING').length;
+
+      return `
+        <tr>
+          <td><strong>${staff}</strong></td>
+          <td>${todayCalls}</td>
+          <td style="color:green; font-weight:bold;">${completed}</td>
+          <td style="color:red; font-weight:bold;">${pending}</td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById('staffReport').innerHTML = html;
+  }
+
+  // Render Mobile Data Cards
   function renderCards(data) {
     const container = document.getElementById('patientList');
     container.innerHTML = '';
 
     if (data.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:20px; background:white; border-radius:12px;">ഡാറ്റയൊന്നും കണ്ടെത്തിയില്ല!</div>';
+      container.innerHTML = '<div style="text-align:center; padding:15px; background:white; border-radius:10px; font-size:0.85rem;">ഡാറ്റയൊന്നും കണ്ടെത്തിയില്ല!</div>';
       return;
     }
 
@@ -206,14 +259,14 @@
         </div>
         <div class="card-body">
           <div><strong>Reg Date:</strong> ${formatDate(item['REG DATE'])}</div>
-          <div><strong>Patient ID:</strong> ${item['PATIENT ID'] || '-'}</div>
-          <div><strong>Phone:</strong> ${item['PHN NO.'] || '-'}</div>
+          <div><strong>ID:</strong> ${item['PATIENT ID'] || '-'}</div>
+          <div><strong>Ph No:</strong> <span class="no-link">${item['PHN NO.'] || '-'}</span></div>
           <div><strong>Call Status:</strong> ${item['CALL STATUS'] || '-'}</div>
           <div><strong>Feedback:</strong> ${item['FEEDBACK'] || '-'}</div>
           <div><strong>Call Type:</strong> ${item['CALL TYPE'] || '-'}</div>
-          <div><strong>Assigned To:</strong> <strong>${item['ASSIGNED TO'] || '-'}</strong></div>
-          <div class="full-width ${isPending ? 'remarks-text' : ''}">
-            <strong>Remarks / Pending Reason:</strong> ${remarks}
+          <div class="full-width"><strong>Assigned To:</strong> ${item['ASSIGNED TO'] || '-'}</div>
+          <div class="full-width ${isPending ? 'remarks-box' : ''}">
+            <strong>Remarks:</strong> ${remarks}
           </div>
         </div>
       `;
@@ -221,32 +274,7 @@
     });
   }
 
-  // Daily Staff Performance Summary
-  function generateReport(data) {
-    const staffs = ['KAVYA', 'MAJIDA', 'DINSHA'];
-    const todayStr = new Date().toISOString().split('T')[0];
-    
-    const html = staffs.map(staff => {
-      const staffData = data.filter(d => (d['ASSIGNED TO'] || '').toString().trim().toUpperCase() === staff);
-      
-      const todayCalls = staffData.filter(d => getISOFromDate(d['REG DATE']) === todayStr).length;
-      const completed = staffData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'COMPLETED').length;
-      const pending = staffData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'PENDING').length;
-
-      return `
-        <tr>
-          <td><strong>${staff}</strong></td>
-          <td>${todayCalls}</td>
-          <td style="color:green; font-weight:bold;">${completed}</td>
-          <td style="color:red; font-weight:bold;">${pending}</td>
-        </tr>
-      `;
-    }).join('');
-
-    document.getElementById('staffReport').innerHTML = html;
-  }
-
-  // Filters logic
+  // Filter Logic
   function applyFilters() {
     const fromDate = document.getElementById('fromDate').value;
     const toDate = document.getElementById('toDate').value;
