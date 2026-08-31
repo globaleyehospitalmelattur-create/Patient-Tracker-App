@@ -5,14 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Patient Tracker System</title>
 
-  <!-- PWA Connections -->
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#2b6cb0">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Patient Tracker">
-  <meta name="format-detection" content="telephone=no">
-
   <!-- Chart.js & Export Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -108,6 +100,7 @@
 
     .phone-link { color: #2b6cb0; text-decoration: none; font-weight: bold; }
     .loader { text-align: center; padding: 20px; font-size: 0.85rem; font-weight: bold; color: #4a5568; }
+    .error-msg { background: #fff5f5; color: #e53e3e; border: 1px solid #feb2b2; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; font-size: 0.8rem; }
   </style>
 </head>
 <body>
@@ -202,13 +195,13 @@
     <span class="count-badge" id="recordCountBadge">0 Records</span>
   </div>
 
-  <div id="loader" class="loader">Loading Data...</div>
+  <div id="statusMessage" class="loader">Loading Data...</div>
   <div class="data-list" id="patientList"></div>
 </div>
 
 <script>
-  // 🔴 നിങ്ങളുടെ APPS SCRIPT WEB APP URL ഇവിടെ ചേർക്കുക
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby04UqWO_xX91k1aEAFoi4Cxor77nlXr7aYAVu4Qyk1aoc6wHdNCt5hlDfa_cnCNPhESw/exec';
+  // 🔴 പുതിയതായി Deploy ചെയ്ത APPS SCRIPT WEB APP URL താഴെ നൽകുക
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHwEPbcnq7fGW3t4CKZysU1xQ-siXJIjM0OGuG1l6EqOJxd1WAikUixQ3TzhWT50pRFw/exec';
   
   let rawData = [];
   let chartInstance = null;
@@ -261,42 +254,33 @@
     return isoStr;
   }
 
-  // Fast Load: Local Storage-ൽ പഴയ ഡാറ്റയുണ്ടെങ്കിൽ പെട്ടെന്ന് കാണിക്കും
-  function initLoad() {
-    const cached = localStorage.getItem('cached_patient_data');
-    if (cached) {
-      try {
-        const parsedData = JSON.parse(cached);
-        processData(parsedData);
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('summaryCounterBox').style.display = 'flex';
-      } catch (e) {
-        console.error("Cache Read Error", e);
-      }
-    }
-    fetchDataFromNetwork();
-  }
-
   async function fetchDataFromNetwork() {
-    const loader = document.getElementById('loader');
-    if (rawData.length === 0) {
-      loader.style.display = 'block';
-      loader.innerText = 'Syncing Data...';
-    }
+    const statusMsg = document.getElementById('statusMessage');
+    statusMsg.className = 'loader';
+    statusMsg.style.display = 'block';
+    statusMsg.innerText = 'Syncing Data...';
 
     try {
-      const response = await fetch(SCRIPT_URL);
+      const response = await fetch(SCRIPT_URL + '?nocache=' + new Date().getTime());
+      
+      if (!response.ok) {
+        throw new Error('HTTP Error Status: ' + response.status);
+      }
+
       const data = await response.json();
       
-      localStorage.setItem('cached_patient_data', JSON.stringify(data));
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
       processData(data);
 
-      loader.style.display = 'none';
+      statusMsg.style.display = 'none';
       document.getElementById('summaryCounterBox').style.display = 'flex';
     } catch (error) {
-      if (rawData.length === 0) {
-        loader.innerText = 'Data load ചെയ്യാൻ കഴിഞ്ഞില്ല! SCRIPT_URL ഉറപ്പുവരുത്തുക.';
-      }
+      console.error('Fetch Error:', error);
+      statusMsg.className = 'error-msg';
+      statusMsg.innerHTML = '⚠️ <b>Data Load ചെയ്യാൻ സാധിച്ചില്ല!</b><br>Apps Script Deploy ചെയ്തപ്പോൾ Access "Anyone" എന്ന് നൽകിയിട്ടുണ്ടോ എന്ന് ഉറപ്പുവരുത്തുക.';
     }
   }
 
@@ -564,7 +548,8 @@
     doc.save("Staff_Performance_Report.pdf");
   }
 
-  initLoad();
+  // Start Load
+  fetchDataFromNetwork();
 </script>
 
 </body>
