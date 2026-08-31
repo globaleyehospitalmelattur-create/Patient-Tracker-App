@@ -200,7 +200,6 @@
 </div>
 
 <script>
-  // 🔴 നിങ്ങളുടെ APPS SCRIPT WEB APP URL ഇവിടെ നൽകുക
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx1JoOReU2WvWkjHHXsHWYNRoEXjNiQ1Y4AXP9QRPLszZAAniO-cnnjWQUCXPEgSdFp/exec';
   
   let rawData = [];
@@ -309,8 +308,6 @@
 
   function populateDropdowns() {
     const staffSelect = document.getElementById('filterStaff');
-    
-    // എല്ലാ സ്റ്റാഫുകളുടെയും പേരുകൾ കൃത്യമായി ശേഖരിക്കുന്നു
     const staffs = [...new Set(
       rawData.map(d => d.assignedTo.trim().toUpperCase())
              .filter(name => Boolean(name) && name !== 'ASSIGNED TO' && name !== 'STAFF')
@@ -391,19 +388,48 @@
     if (chartInstance) chartInstance.destroy();
 
     chartInstance = new Chart(ctx, {
-      type: 'bar',
+      type: 'line',
       data: {
         labels: labels,
         datasets: [
-          { label: 'Total Calls', data: totalData, backgroundColor: '#3182ce' },
-          { label: 'Completed', data: completedData, backgroundColor: '#38a169' },
-          { label: 'Pending', data: pendingData, backgroundColor: '#e53e3e' }
+          { 
+            label: 'Total Calls', 
+            data: totalData, 
+            borderColor: '#3182ce',
+            backgroundColor: 'rgba(49, 130, 206, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4
+          },
+          { 
+            label: 'Completed', 
+            data: completedData, 
+            borderColor: '#38a169',
+            backgroundColor: 'rgba(56, 161, 105, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4
+          },
+          { 
+            label: 'Pending', 
+            data: pendingData, 
+            borderColor: '#e53e3e',
+            backgroundColor: 'rgba(229, 62, 62, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4
+          }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { position: 'top', labels: { font: { size: 10 } } } },
+        plugins: { 
+          legend: { 
+            position: 'top', 
+            labels: { font: { size: 10 } } 
+          } 
+        },
         scales: {
           x: { ticks: { font: { size: 10 } } },
           y: { beginAtZero: true, ticks: { precision: 0 } }
