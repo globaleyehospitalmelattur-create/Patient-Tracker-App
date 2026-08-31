@@ -160,7 +160,7 @@
     });
   }
 
-  // നിങ്ങളുടെ Apps Script URL ഇവിടെ നൽകുക
+  // നിങ്ങളുടെ Apps Script Web App URL ഇവിടെ നൽകുക
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxxYnwMk8SBZPcN5M86xFtME-zRbTGwiAc373SgmhDMlIwZRTKVrw6oEfFJJOTvnnHOvA/exec';
   let rawData = [];
 
@@ -180,7 +180,23 @@
   async function loadData() {
     try {
       const response = await fetch(SCRIPT_URL);
-      rawData = await response.json();
+      const data = await response.json();
+      
+      // Blank Date ആണെങ്കിൽ തൊട്ടുമുകളിലെ തീയതി Auto ആയി എടുക്കുന്ന ലോജിക്
+      let lastValidDate = '';
+      rawData = data.map(item => {
+        let currentDate = item['REG DATE'] || item['Reg Date'] || item['DATE'] || item['Date'];
+        if (currentDate && currentDate.toString().trim() !== '') {
+          lastValidDate = currentDate;
+        } else {
+          currentDate = lastValidDate;
+        }
+        return {
+          ...item,
+          'REG DATE': currentDate
+        };
+      });
+
       document.getElementById('loader').style.display = 'none';
 
       populateStaffDropdown(rawData);
@@ -227,7 +243,9 @@
 
       const totalCalls = staffData.length;
       const completed = staffData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'COMPLETED').length;
-      const pending = staffData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'PENDING').length;
+      
+      // Total - Completed = Pending ലോജിക് (ഡാറ്റ എൻട്രി വിട്ടുപോയാലും കണക്ക് കൃത്യമാക്കും)
+      const pending = totalCalls - completed;
 
       return `
         <tr>
@@ -253,9 +271,10 @@
 
     data.forEach(item => {
       const taskStatus = (item['TASK STATUS'] || '').toString().trim().toUpperCase();
-      const isPending = taskStatus === 'PENDING';
-      const cardClass = isPending ? 'data-card pending' : 'data-card completed';
-      const badgeClass = isPending ? 'badge badge-pending' : 'badge badge-completed';
+      const isCompleted = taskStatus === 'COMPLETED';
+      const cardClass = isCompleted ? 'data-card completed' : 'data-card pending';
+      const badgeClass = isCompleted ? 'badge badge-completed' : 'badge badge-pending';
+      const displayStatus = isCompleted ? 'COMPLETED' : 'PENDING';
       const remarks = item['REMARKS'] || item['Remarks'] || '-';
       const phoneNum = item['PHN NO.'] || '-';
 
@@ -264,7 +283,7 @@
       card.innerHTML = `
         <div class="card-header">
           <span class="patient-name">${item['PATIENT NAME'] || 'N/A'}</span>
-          <span class="${badgeClass}">${taskStatus}</span>
+          <span class="${badgeClass}">${displayStatus}</span>
         </div>
         <div class="card-body">
           <div><strong>Reg Date:</strong> ${formatDate(item['REG DATE'])}</div>
@@ -274,7 +293,7 @@
           <div><strong>Feedback:</strong> ${item['FEEDBACK'] || '-'}</div>
           <div><strong>Call Type:</strong> ${item['CALL TYPE'] || '-'}</div>
           <div class="full-width"><strong>Assigned To:</strong> ${item['ASSIGNED TO'] || '-'}</div>
-          <div class="full-width ${isPending ? 'remarks-box' : ''}">
+          <div class="full-width ${!isCompleted ? 'remarks-box' : ''}">
             <strong>Remarks:</strong> ${remarks}
           </div>
         </div>
@@ -313,7 +332,15 @@
       const searchMatch = !searchVal || nameMatch || phoneMatch;
 
       const staffMatch = !staffVal || (item['ASSIGNED TO'] || '').toString().trim().toUpperCase() === staffVal;
-      const taskMatch = !taskVal || (item['TASK STATUS'] || '').toString().trim().toUpperCase() === taskVal;
+      
+      const itemTaskStatus = (item['TASK STATUS'] || '').toString().trim().toUpperCase();
+      let taskMatch = true;
+      if (taskVal === 'COMPLETED') {
+        taskMatch = itemTaskStatus === 'COMPLETED';
+      } else if (taskVal === 'PENDING') {
+        taskMatch = itemTaskStatus !== 'COMPLETED';
+      }
+
       const callMatch = !callVal || (item['CALL STATUS'] || '').toString().trim().toUpperCase() === callVal;
       const typeMatch = !typeVal || (item['CALL TYPE'] || '').toString().trim().toUpperCase() === typeVal;
 
