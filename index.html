@@ -14,6 +14,12 @@
   <meta name="format-detection" content="telephone=no">
   <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/17icwijGR2PT4sa7mteOgf_PozoQP3a4d">
 
+  <!-- External Libraries for Graph, Excel, PDF Export -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: #f0f4f8; padding: 12px; color: #333; -webkit-tap-highlight-color: transparent; }
@@ -25,9 +31,19 @@
     .card { background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 12px; }
     .card h3 { font-size: 0.85rem; color: #4a5568; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
     
-    .report-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+    .export-btns { display: flex; gap: 6px; }
+    .btn-export { border: none; padding: 5px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; color: white; cursor: pointer; transition: opacity 0.2s; }
+    .btn-export:active { opacity: 0.8; }
+    .btn-excel { background-color: #276749; }
+    .btn-pdf { background-color: #c53030; }
+
+    .report-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 12px; }
     .report-table th, .report-table td { border: 1px solid #e2e8f0; padding: 8px 4px; text-align: center; }
     .report-table th { background-color: #edf2f7; color: #2d3748; font-weight: bold; }
+
+    /* Graph Container */
+    .chart-container { position: relative; width: 100%; height: 260px; margin-top: 10px; }
 
     .filter-box { background: white; padding: 12px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
     .filter-title { font-size: 0.85rem; font-weight: bold; color: #2d3748; margin-bottom: 8px; }
@@ -69,10 +85,18 @@
     <h1>Patient Call Tracker</h1>
   </header>
 
-  <!-- Performance Summary Card -->
+  <!-- Performance Summary & Graph Card -->
   <div class="card">
-    <h3 id="reportTitle">Staff Performance Report</h3>
-    <table class="report-table">
+    <div class="report-header">
+      <h3 id="reportTitle" style="margin-bottom:0;">Staff Performance Report</h3>
+      <div class="export-btns">
+        <button class="btn-export btn-excel" onclick="exportToExcel()">📊 Excel</button>
+        <button class="btn-export btn-pdf" onclick="exportToPDF()">📄 PDF</button>
+      </div>
+    </div>
+    
+    <!-- Report Table -->
+    <table class="report-table" id="reportTable">
       <thead>
         <tr>
           <th>Staff Name</th>
@@ -85,6 +109,11 @@
         <tr><td colspan="4">Loading Report...</td></tr>
       </tbody>
     </table>
+
+    <!-- Performance Chart -->
+    <div class="chart-container">
+      <canvas id="performanceChart"></canvas>
+    </div>
   </div>
 
   <!-- Search & Filters -->
@@ -163,6 +192,7 @@
   // നിങ്ങളുടെ Apps Script Web App URL ഇവിടെ നൽകുക
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxxYnwMk8SBZPcN5M86xFtME-zRbTGwiAc373SgmhDMlIwZRTKVrw6oEfFJJOTvnnHOvA/exec';
   let rawData = [];
+  let chartInstance = null;
 
   function getLocalDateString(dateObj = new Date()) {
     const year = dateObj.getFullYear();
@@ -171,10 +201,10 @@
     return `${year}-${month}-${day}`;
   }
 
-  function setDefaultTodayDates() {
-    const today = getLocalDateString();
-    document.getElementById('fromDate').value = today;
-    document.getElementById('toDate').value = today;
+  // ആപ്പ് സ്റ്റാർട്ട് ചെയ്യുമ്പോൾ 01/01/2026 മുതൽ 31/12/2026 വരെ ഡേറ്റ സെറ്റ് ചെയ്യുന്നു
+  function setDefaultDates() {
+    document.getElementById('fromDate').value = '2026-01-01';
+    document.getElementById('toDate').value = '2026-12-31';
   }
 
   async function loadData() {
@@ -182,7 +212,6 @@
       const response = await fetch(SCRIPT_URL);
       const data = await response.json();
       
-      // Blank Date ആണെങ്കിൽ തൊട്ടുമുകളിലെ തീയതി Auto ആയി എടുക്കുന്ന ലോജിക്
       let lastValidDate = '';
       rawData = data.map(item => {
         let currentDate = item['REG DATE'] || item['Reg Date'] || item['DATE'] || item['Date'];
@@ -200,7 +229,7 @@
       document.getElementById('loader').style.display = 'none';
 
       populateStaffDropdown(rawData);
-      setDefaultTodayDates();
+      setDefaultDates();
       applyFilters();
     } catch (error) {
       document.getElementById('loader').innerText = 'Data load ചെയ്യാൻ കഴിഞ്ഞില്ല. Apps Script URL ഉറപ്പുവരുത്തുക.';
@@ -209,7 +238,10 @@
 
   function populateStaffDropdown(data) {
     const staffSelect = document.getElementById('filterStaff');
-    const staffs = [...new Set(data.map(item => (item['ASSIGNED TO'] || '').toString().trim().toUpperCase()).filter(Boolean))];
+    const staffs = [...new Set(
+      data.map(item => (item['ASSIGNED TO'] || '').toString().trim().toUpperCase())
+          .filter(name => Boolean(name) && name !== 'ASSIGNED TO')
+    )];
 
     staffSelect.innerHTML = '<option value="">All Staffs</option>';
     staffs.forEach(staff => {
@@ -223,29 +255,37 @@
   function updatePerformanceReport(filteredByDateData, fromDate, toDate) {
     const reportTitle = document.getElementById('reportTitle');
     
-    if (fromDate && toDate && fromDate === toDate) {
-      reportTitle.innerHTML = `Today Staff Performance Report <span style="font-size:0.75rem; color:#2b6cb0;">(${formatDate(fromDate)})</span>`;
-    } else if (fromDate && toDate) {
+    if (fromDate && toDate) {
       reportTitle.innerHTML = `Staff Performance Report <span style="font-size:0.75rem; color:#2b6cb0;">(${formatDate(fromDate)} to ${formatDate(toDate)})</span>`;
     } else {
       reportTitle.innerText = "Overall Staff Performance Report";
     }
 
-    const staffs = [...new Set(rawData.map(item => (item['ASSIGNED TO'] || '').toString().trim().toUpperCase()).filter(Boolean))];
+    const staffs = [...new Set(
+      rawData.map(item => (item['ASSIGNED TO'] || '').toString().trim().toUpperCase())
+             .filter(name => Boolean(name) && name !== 'ASSIGNED TO')
+    )];
     
     if (staffs.length === 0) {
       document.getElementById('staffReport').innerHTML = '<tr><td colspan="4">No Staff Data Found</td></tr>';
+      if (chartInstance) chartInstance.destroy();
       return;
     }
+
+    const totalData = [];
+    const completedData = [];
+    const pendingData = [];
 
     const html = staffs.map(staff => {
       const staffData = filteredByDateData.filter(d => (d['ASSIGNED TO'] || '').toString().trim().toUpperCase() === staff);
 
       const totalCalls = staffData.length;
       const completed = staffData.filter(d => (d['TASK STATUS'] || '').toString().trim().toUpperCase() === 'COMPLETED').length;
-      
-      // Total - Completed = Pending ലോജിക് (ഡാറ്റ എൻട്രി വിട്ടുപോയാലും കണക്ക് കൃത്യമാക്കും)
       const pending = totalCalls - completed;
+
+      totalData.push(totalCalls);
+      completedData.push(completed);
+      pendingData.push(pending);
 
       return `
         <tr>
@@ -258,6 +298,53 @@
     }).join('');
 
     document.getElementById('staffReport').innerHTML = html;
+    renderPerformanceChart(staffs, totalData, completedData, pendingData);
+  }
+
+  function renderPerformanceChart(labels, totalData, completedData, pendingData) {
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Total Calls',
+            data: totalData,
+            backgroundColor: '#3182ce'
+          },
+          {
+            label: 'Completed',
+            data: completedData,
+            backgroundColor: '#38a169'
+          },
+          {
+            label: 'Pending',
+            data: pendingData,
+            backgroundColor: '#e53e3e'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { font: { size: 10 } }
+          }
+        },
+        scales: {
+          x: { ticks: { font: { size: 10 } } },
+          y: { beginAtZero: true, ticks: { precision: 0 } }
+        }
+      }
+    });
   }
 
   function renderCards(data) {
@@ -356,7 +443,7 @@
     document.getElementById('filterTaskStatus').value = '';
     document.getElementById('filterCallStatus').value = '';
     document.getElementById('filterCallType').value = '';
-    setDefaultTodayDates();
+    setDefaultDates();
     applyFilters();
   }
 
@@ -372,6 +459,34 @@
     if (!iso) return dateStr || '-';
     const [y, m, d] = iso.split('-');
     return `${d}/${m}/${y}`;
+  }
+
+  /* --- EXPORT FUNCTIONS --- */
+
+  // 1. Export Staff Performance Report to Excel
+  function exportToExcel() {
+    const table = document.getElementById("reportTable");
+    const wb = XLSX.utils.table_to_book(table, { sheet: "Staff Report" });
+    XLSX.writeFile(wb, "Staff_Performance_Report.xlsx");
+  }
+
+  // 2. Export Staff Performance Report to PDF
+  function exportToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(14);
+    doc.text("Staff Performance Report", 14, 15);
+
+    doc.autoTable({
+      html: '#reportTable',
+      startY: 22,
+      theme: 'grid',
+      headStyles: { fillColor: [43, 108, 176] },
+      styles: { fontSize: 10, halign: 'center' }
+    });
+
+    doc.save("Staff_Performance_Report.pdf");
   }
 
   loadData();
