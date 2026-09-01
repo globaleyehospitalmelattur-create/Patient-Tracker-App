@@ -12,119 +12,116 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f1f5f9;
-            padding: 12px;
+            background-color: #f8fafc;
+            padding: 8px;
             color: #0f172a;
         }
         
-        /* Swapped Title Header Banner */
+        /* Compact Header Banner */
         .hospital-header {
             background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
             color: #ffffff;
             text-align: center;
-            padding: 18px 12px;
-            border-radius: 14px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+            padding: 10px 8px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
         }
         .hospital-header h1 {
-            font-size: 22px;
+            font-size: 16px;
             font-weight: 800;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
             color: #ffffff;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         .hospital-header p {
-            font-size: 13px;
+            font-size: 11px;
             color: #93c5fd;
             font-weight: 600;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             text-transform: uppercase;
         }
 
-        /* Stats Bar Widget */
+        /* Compact Stats Bar Widget */
         .stats-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 6px;
+            margin-bottom: 8px;
         }
         .stat-card {
             background: #ffffff;
-            padding: 10px;
-            border-radius: 12px;
+            padding: 6px 4px;
+            border-radius: 8px;
             text-align: center;
             border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+            transition: transform 0.15s, box-shadow 0.15s;
         }
         .stat-card-clickable {
             cursor: pointer;
         }
-        .stat-card-clickable:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        .stat-card-clickable:active {
+            transform: scale(0.98);
         }
         .stat-card-active {
-            border: 2px solid #ef4444;
+            border: 1.5px solid #ef4444;
             background-color: #fef2f2;
         }
         .stat-card .stat-title {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
             color: #64748b;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 2px;
+            letter-spacing: 0.3px;
+            margin-bottom: 1px;
         }
         .stat-card .stat-value {
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 800;
         }
         .stat-total { color: #2563eb; }
         .stat-completed { color: #166534; }
         .stat-pending { color: #991b1b; }
 
-        /* Control Panel Styles */
+        /* Compact Control Panel Styles */
         .controls-container {
             background: #ffffff;
-            padding: 14px;
-            border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            margin-bottom: 14px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+            margin-bottom: 8px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 6px;
             border: 1px solid #e2e8f0;
         }
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 2px;
         }
         label {
-            font-size: 11px;
+            font-size: 9px;
             font-weight: 700;
             color: #475569;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
         }
         select, input {
             width: 100%;
-            padding: 11px 14px;
-            font-size: 14px;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 10px;
+            padding: 7px 10px;
+            font-size: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
             outline: none;
             background-color: #f8fafc;
             color: #0f172a;
-            transition: all 0.2s ease;
         }
         select:focus, input:focus {
             border-color: #2563eb;
             background-color: #ffffff;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
         
         /* Desktop Table View */
@@ -135,16 +132,16 @@
             width: 100%;
             border-collapse: collapse;
             background: #ffffff;
-            border-radius: 14px;
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
             border: 1px solid #e2e8f0;
         }
         th, td {
-            padding: 12px 14px;
+            padding: 8px 10px;
             border-bottom: 1px solid #f1f5f9;
             text-align: left;
-            font-size: 13px;
+            font-size: 12px;
         }
         th {
             background-color: #1e3a8a;
@@ -156,15 +153,15 @@
             background-color: #f8fafc;
         }
 
-        /* Status Badges */
+        /* Compact Badges */
         .badge {
             display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 9px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.2px;
             width: fit-content;
         }
         .badge-success { background-color: #dcfce7; color: #166534; }
@@ -172,43 +169,40 @@
         .badge-warning { background-color: #fef3c7; color: #92400e; }
         .badge-default { background-color: #f1f5f9; color: #475569; }
 
-        /* Clean Phone Link without Background Box */
+        /* Clean Phone Link */
         .phone-container {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             font-weight: 600;
             color: #0f172a;
+            font-size: 12px;
         }
         .call-icon-btn {
             color: #2563eb;
             text-decoration: none;
-            font-size: 15px;
+            font-size: 13px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.1s;
-        }
-        .call-icon-btn:active {
-            transform: scale(1.2);
         }
 
-        /* Emoji Display */
+        /* Compact Emoji Display */
         .emoji-large {
-            font-size: 26px;
+            font-size: 20px;
             line-height: 1;
         }
 
         /* Feedback label beneath remarks */
         .feedback-details {
-            font-size: 11px;
+            font-size: 10px;
             color: #64748b;
             font-weight: 600;
-            margin-top: 5px;
+            margin-top: 3px;
             display: block;
         }
 
-        /* Custom Mobile Card Grid Layout */
+        /* Ultra-Compact Mobile Layout */
         @media screen and (max-width: 768px) {
             table {
                 background: transparent;
@@ -221,12 +215,12 @@
             tr {
                 display: grid;
                 grid-template-columns: repeat(6, 1fr);
-                gap: 10px;
+                gap: 6px;
                 background-color: #ffffff;
-                margin-bottom: 14px;
-                border-radius: 16px;
-                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-                padding: 14px;
+                margin-bottom: 8px;
+                border-radius: 10px;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+                padding: 10px;
                 border: 1px solid #cbd5e1;
             }
             td {
@@ -234,9 +228,9 @@
                 flex-direction: column;
                 justify-content: center;
                 border-bottom: none;
-                padding: 2px;
+                padding: 0;
                 text-align: left;
-                font-size: 13px;
+                font-size: 11px;
                 word-break: break-word;
             }
 
@@ -249,15 +243,15 @@
             td[data-label="PATIENT NAME"] {
                 grid-column: span 3;
                 background-color: #f8fafc;
-                padding: 8px 10px;
-                border-radius: 10px;
+                padding: 5px 6px;
+                border-radius: 6px;
                 border: 1px solid #f1f5f9;
             }
             td[data-label="PHN NO."] {
                 grid-column: span 3;
                 background-color: #f8fafc;
-                padding: 8px 10px;
-                border-radius: 10px;
+                padding: 5px 6px;
+                border-radius: 6px;
                 border: 1px solid #f1f5f9;
             }
 
@@ -275,8 +269,8 @@
             td[data-label="REMARKS"] {
                 grid-column: span 6;
                 background-color: #f8fafc;
-                padding: 10px 12px;
-                border-radius: 10px;
+                padding: 6px 8px;
+                border-radius: 6px;
                 border: 1px solid #f1f5f9;
             }
 
@@ -284,10 +278,10 @@
                 content: attr(data-label);
                 font-weight: 700;
                 color: #2563eb;
-                font-size: 10px;
+                font-size: 8px;
                 text-transform: uppercase;
-                margin-bottom: 3px;
-                letter-spacing: 0.5px;
+                margin-bottom: 2px;
+                letter-spacing: 0.3px;
             }
         }
 
@@ -311,7 +305,7 @@
 
     <div class="stats-container">
         <div class="stat-card" onclick="clearPendingFilter()">
-            <div class="stat-title">Total Tasks</div>
+            <div class="stat-title">Total</div>
             <div class="stat-value stat-total" id="totalTasks">0</div>
         </div>
         <div class="stat-card" onclick="clearPendingFilter()">
@@ -319,7 +313,7 @@
             <div class="stat-value stat-completed" id="completedTasks">0</div>
         </div>
         <div class="stat-card stat-card-clickable" id="pendingStatCard" onclick="togglePendingFilter()">
-            <div class="stat-title">Pending 🔍</div>
+            <div class="stat-title">Pending </div>
             <div class="stat-value stat-pending" id="pendingTasks">0</div>
         </div>
     </div>
@@ -390,13 +384,12 @@
             document.getElementById("searchInput").value = ""; 
             clearPendingFilterUI();
 
-            tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 25px; color:#64748b; font-weight:600;">Loading ${selectedMonth === 'ALL' ? 'All Months' : selectedMonth} data...</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px; color:#64748b; font-weight:600; font-size:12px;">Loading ${selectedMonth === 'ALL' ? 'All Months' : selectedMonth} data...</td></tr>`;
 
             try {
                 let combinedData = [];
 
                 if (selectedMonth === "ALL") {
-                    // Fetch data from all months in parallel
                     const fetchPromises = monthList.map(m => 
                         fetch(`${WEB_APP_URL}?sheet=${m}`)
                             .then(res => res.json())
@@ -414,7 +407,7 @@
                 }
 
                 if (combinedData.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 25px; color:#ef4444; font-weight:600;">No data found</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px; color:#ef4444; font-weight:600; font-size:12px;">No data found</td></tr>`;
                     updateTaskCounters(0, 0, 0);
                     return;
                 }
@@ -477,7 +470,7 @@
 
             } catch (error) {
                 console.error(error);
-                tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 25px; color:#ef4444; font-weight:600;">Error loading data. Check Web App URL.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px; color:#ef4444; font-weight:600; font-size:12px;">Error loading data. Check Web App URL.</td></tr>`;
                 updateTaskCounters(0, 0, 0);
             }
         }
