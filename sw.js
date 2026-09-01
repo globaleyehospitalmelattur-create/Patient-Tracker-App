@@ -1,9 +1,9 @@
-const CACHE_NAME = 'global-crm-v2';
+const CACHE_NAME = 'global-crm-v3';
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  'http://googleusercontent.com/profile/picture/6'
+  'http://googleusercontent.com/profile/picture/7'
 ];
 
 self.addEventListener('install', (event) => {
