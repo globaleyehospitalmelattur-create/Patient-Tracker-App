@@ -3,7 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRM Feedback 2026 - Global Eye Hospital</title>
+    <title>Global CRM</title>
+    
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Global Eye Hospital CRM Application">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Global CRM">
+    
+    <link rel="icon" type="image/png" href="http://googleusercontent.com/profile/picture/3">
+    <link rel="apple-touch-icon" href="http://googleusercontent.com/profile/picture/3">
+
+    <link rel="manifest" href='data:application/manifest+json,{
+        "name": "Global CRM",
+        "short_name": "Global CRM",
+        "description": "Global Eye Hospital CRM Application",
+        "start_url": "./",
+        "display": "standalone",
+        "background_color": "#f8fafc",
+        "theme_color": "#0f172a",
+        "icons": [
+            {
+                "src": "http://googleusercontent.com/profile/picture/3",
+                "sizes": "192x192",
+                "type": "image/png"
+            },
+            {
+                "src": "http://googleusercontent.com/profile/picture/3",
+                "sizes": "512x512",
+                "type": "image/png"
+            }
+        ]
+    }'>
+
     <style>
         * {
             box-sizing: border-box;
@@ -26,8 +58,18 @@
             border-radius: 10px;
             margin-bottom: 8px;
             box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
-        .hospital-header h1 {
+        .header-logo {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+        .header-titles h1 {
             font-size: 16px;
             font-weight: 800;
             letter-spacing: 0.5px;
@@ -35,12 +77,58 @@
             color: #ffffff;
             margin-bottom: 2px;
         }
-        .hospital-header p {
+        .header-titles p {
             font-size: 11px;
             color: #93c5fd;
             font-weight: 600;
             letter-spacing: 0.3px;
             text-transform: uppercase;
+        }
+
+        /* PWA Install Banner Container */
+        .pwa-banner {
+            display: none;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            align-items: center;
+            justify-content: space-between;
+        }
+        .pwa-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .pwa-info img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+        .pwa-info-text {
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .pwa-info-sub {
+            font-size: 9px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .pwa-btn {
+            background-color: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .pwa-btn:active {
+            background-color: #1d4ed8;
         }
 
         /* Compact Stats Bar Widget */
@@ -240,7 +328,6 @@
             justify-content: center;
             transition: transform 0.15s ease;
         }
-        /* Doubled WhatsApp icon size from 18px to 36px */
         .wa-custom-icon {
             width: 36px;
             height: 36px;
@@ -382,13 +469,25 @@
 </head>
 <body>
 
-    <!-- Compact Header -->
     <div class="hospital-header">
-        <h1>CRM FEEDBACK 2026</h1>
-        <p>Global Eye Hospital Melattur</p>
+        <img src="http://googleusercontent.com/profile/picture/3" alt="Global CRM Logo" class="header-logo">
+        <div class="header-titles">
+            <h1>GLOBAL CRM</h1>
+            <p>Global Eye Hospital Melattur</p>
+        </div>
     </div>
 
-    <!-- Task Statistics Widget -->
+    <div class="pwa-banner" id="pwaBanner">
+        <div class="pwa-info">
+            <img src="http://googleusercontent.com/profile/picture/3" alt="App Logo">
+            <div>
+                <div class="pwa-info-text">Install Global CRM</div>
+                <div class="pwa-info-sub" id="pwaSubText">Add to home screen for fast access</div>
+            </div>
+        </div>
+        <button class="pwa-btn" id="pwaInstallBtn" onclick="installPWA()">INSTALL</button>
+    </div>
+
     <div class="stats-container">
         <div class="stat-card" onclick="clearPendingFilter()">
             <div class="stat-title">Total</div>
@@ -404,7 +503,6 @@
         </div>
     </div>
 
-    <!-- Emoji Counts Feedback Summary Widget -->
     <div class="emoji-stats-container">
         <div class="emoji-stat-card emoji-card-excellent">
             <span class="emoji-icon">🤩</span> <span id="countExcellent">0</span>
@@ -420,7 +518,6 @@
         </div>
     </div>
 
-    <!-- Search & Filters -->
     <div class="controls-container">
         <div class="input-group">
             <label for="searchInput">Search Data</label>
@@ -447,7 +544,6 @@
         </div>
     </div>
 
-    <!-- Data Display Table Area -->
     <div class="table-container">
         <table id="crmTable">
             <thead>
@@ -466,8 +562,7 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <!-- Dynamically Inserted Rows -->
-            </tbody>
+                </tbody>
         </table>
     </div>
 
@@ -476,6 +571,52 @@
         const monthList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         
         let isPendingOnlyFilterActive = false;
+        let deferredPrompt = null;
+
+        /* PWA Service Worker Inline Setup */
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                const CACHE_NAME = 'global-crm-v1';
+                self.addEventListener('install', (e) => self.skipWaiting());
+                self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+                self.addEventListener('fetch', (e) => {
+                    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'text/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).catch(err => console.log('SW reg error:', err));
+        }
+
+        /* Dynamic PWA Prompt & Installation Handlers */
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('pwaBanner').style.display = 'flex';
+        });
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        document.getElementById('pwaBanner').style.display = 'none';
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+
+        /* Detect iOS for Add to Home Screen Display */
+        function detectiOS() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isStandalone = window.navigator.standalone;
+            if (isIOS && !isStandalone) {
+                document.getElementById('pwaBanner').style.display = 'flex';
+                document.getElementById('pwaSubText').innerText = 'Tap Share button & select "Add to Home Screen"';
+                document.getElementById('pwaInstallBtn').style.display = 'none';
+            }
+        }
 
         function setCurrentMonth() {
             const currentMonthName = monthList[new Date().getMonth()];
@@ -554,7 +695,7 @@
                         tr.setAttribute("data-task-pending", "true");
                     }
 
-                    // Format Phone Number & Add 2X Sized WhatsApp Icon Link
+                    // Format Phone Number & Add WhatsApp Icon Link
                     const rawPhone = (row["PHN NO."] || '').toString().replace(/[^0-9]/g, '');
                     let phoneHTML = '-';
 
@@ -580,23 +721,19 @@
                         : '-';
 
                     tr.innerHTML = `
-                        <!-- ROW 1 -->
                         <td data-label="REG DATE">${row["REG DATE"] || '-'}</td>
                         <td data-label="PATIENT ID">${row["PATIENT ID"] || '-'}</td>
                         <td data-label="CALL STATUS">${callStatusBadge}</td>
                         <td data-label="CALL TYPE">${row["CALL TYPE"] || '-'}</td>
 
-                        <!-- ROW 2 -->
                         <td data-label="PATIENT NAME" style="font-weight:700; color:#0f172a;">${row["PATIENT NAME"] || '-'}</td>
                         <td data-label="PHN NO.">${phoneHTML}</td>
 
-                        <!-- ROW 3 -->
                         <td data-label="FEEDBACK"><span class="emoji-large">${feedbackData.emoji}</span></td>
                         <td data-label="ASSIGNED TO">${row["ASSIGNED TO"] || '-'}</td>
                         <td data-label="CALL DUE DATE">${row["CALL DUE DATE"] || '-'}</td>
                         <td data-label="TASK STATUS">${taskStatusBadge}</td>
 
-                        <!-- ROW 4 -->
                         <td data-label="REMARKS" class="${remarksClass}">${remarksContent}</td>
                     `;
                     tableBody.appendChild(tr);
@@ -715,6 +852,7 @@
         }
 
         window.onload = function() {
+            detectiOS();
             setCurrentMonth();
             loadSheetData();
         };
