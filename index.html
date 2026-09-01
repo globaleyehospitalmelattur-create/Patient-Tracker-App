@@ -111,7 +111,6 @@
             filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
         }
 
-        /* Unique Outer Box Styles for Each Emoji Type */
         .emoji-card-excellent {
             background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             border: 1px solid #bbf7d0;
@@ -217,11 +216,11 @@
         .badge-warning { background-color: #fef3c7; color: #92400e; }
         .badge-default { background-color: #f1f5f9; color: #475569; }
 
-        /* Clean Phone Link */
+        /* Clean Phone & WhatsApp Actions */
         .phone-container {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             font-weight: 600;
             color: #0f172a;
             font-size: 12px;
@@ -233,6 +232,18 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+        }
+        .wa-icon-btn {
+            color: #25d366;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s ease;
+        }
+        .wa-icon-btn:active {
+            transform: scale(1.2);
         }
 
         /* Larger Emoji Display for Table & Mobile Cards */
@@ -501,7 +512,6 @@
                     const taskStatusBadge = getBadgeHTML(row["TASK STATUS"]);
                     const feedbackData = getFeedbackInfo(row["FEEDBACK"]);
 
-                    // Increment Emoji Counts
                     if (feedbackData.key === "excellent") countExcellent++;
                     else if (feedbackData.key === "good") countGood++;
                     else if (feedbackData.key === "average") countAverage++;
@@ -516,10 +526,21 @@
                         tr.setAttribute("data-task-pending", "true");
                     }
 
-                    const phone = row["PHN NO."] || '';
-                    const phoneHTML = phone 
-                        ? `<div class="phone-container"><a href="tel:${phone}" class="call-icon-btn" title="Call Patient">📞</a><span>${phone}</span></div>` 
-                        : '-';
+                    // Format Phone Number & Add WhatsApp Direct Link
+                    const rawPhone = (row["PHN NO."] || '').toString().replace(/[^0-9]/g, '');
+                    let phoneHTML = '-';
+
+                    if (rawPhone) {
+                        // Standardize country code for India (+91) if needed
+                        const waPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
+                        phoneHTML = `
+                            <div class="phone-container">
+                                <a href="tel:${rawPhone}" class="call-icon-btn" title="Call Patient">📞</a>
+                                <span>${row["PHN NO."]}</span>
+                                <a href="https://wa.me/${waPhone}" target="_blank" class="wa-icon-btn" title="Send WhatsApp Message">🟢</a>
+                            </div>
+                        `;
+                    }
 
                     const rawRemarks = (row["REMARKS"] || '').toString().trim();
                     const hasRemarks = rawRemarks.length > 0 && rawRemarks !== '-';
