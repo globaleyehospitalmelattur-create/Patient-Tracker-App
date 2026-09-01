@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Eye Hospital Melattur - CRM</title>
+    <title>CRM Feedback 2026 - Global Eye Hospital</title>
     <style>
         * {
             box-sizing: border-box;
@@ -17,7 +17,7 @@
             color: #0f172a;
         }
         
-        /* Hospital Header Banner */
+        /* Swapped Title Header Banner */
         .hospital-header {
             background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
             color: #ffffff;
@@ -28,7 +28,7 @@
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
         }
         .hospital-header h1 {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
             letter-spacing: 0.8px;
             text-transform: uppercase;
@@ -36,10 +36,11 @@
             margin-bottom: 4px;
         }
         .hospital-header p {
-            font-size: 12px;
+            font-size: 13px;
             color: #93c5fd;
-            font-weight: 500;
+            font-weight: 600;
             letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
         /* Stats Bar Widget */
@@ -56,6 +57,18 @@
             text-align: center;
             border: 1px solid #e2e8f0;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card-clickable {
+            cursor: pointer;
+        }
+        .stat-card-clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+        .stat-card-active {
+            border: 2px solid #ef4444;
+            background-color: #fef2f2;
         }
         .stat-card .stat-title {
             font-size: 10px;
@@ -159,20 +172,25 @@
         .badge-warning { background-color: #fef3c7; color: #92400e; }
         .badge-default { background-color: #f1f5f9; color: #475569; }
 
-        /* Direct Call Button Style */
-        .call-btn {
+        /* Clean Phone Link without Background Box */
+        .phone-container {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: white;
-            text-decoration: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
             font-weight: 600;
-            width: fit-content;
-            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+            color: #0f172a;
+        }
+        .call-icon-btn {
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+        }
+        .call-icon-btn:active {
+            transform: scale(1.2);
         }
 
         /* Emoji Display */
@@ -287,21 +305,21 @@
 <body>
 
     <div class="hospital-header">
-        <h1>GLOBAL EYE HOSPITAL MELATTUR</h1>
-        <p>CRM Feedback Management 2026</p>
+        <h1>CRM FEEDBACK 2026</h1>
+        <p>Global Eye Hospital Melattur</p>
     </div>
 
     <div class="stats-container">
-        <div class="stat-card">
+        <div class="stat-card" onclick="clearPendingFilter()">
             <div class="stat-title">Total Tasks</div>
             <div class="stat-value stat-total" id="totalTasks">0</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="clearPendingFilter()">
             <div class="stat-title">Completed</div>
             <div class="stat-value stat-completed" id="completedTasks">0</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-title">Pending</div>
+        <div class="stat-card stat-card-clickable" id="pendingStatCard" onclick="togglePendingFilter()">
+            <div class="stat-title">Pending 🔍</div>
             <div class="stat-value stat-pending" id="pendingTasks">0</div>
         </div>
     </div>
@@ -355,6 +373,8 @@
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwF2Z-ZPDr5vCutpqpKf_sVPTyCdPqEIIrtTWhg6qNH368W9amj1a2qC9bYpNGfHidjyw/exec"; 
+        
+        let isPendingOnlyFilterActive = false;
 
         function setCurrentMonth() {
             const monthNames = ["January", "February", "March", "April", "May", "June",
@@ -367,10 +387,9 @@
         async function loadSheetData() {
             const selectedMonth = document.getElementById("monthSelect").value;
             const tableBody = document.getElementById("tableBody");
-            document.getElementById("searchInput").value = ""; 
             
-            // Reset counters during load
-            updateTaskCounters(0, 0, 0);
+            document.getElementById("searchInput").value = ""; 
+            clearPendingFilterUI();
 
             tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 25px; color:#64748b; font-weight:600;">Loading ${selectedMonth} data...</td></tr>`;
 
@@ -398,18 +417,20 @@
                     const feedbackData = getFeedbackInfo(row["FEEDBACK"]);
 
                     // Calculate Task Counts based on TASK STATUS
-                    const taskStatus = (row["TASK STATUS"] || '').toString().toLowerCase().trim();
-                    if (taskStatus.includes("completed") || taskStatus.includes("closed") || taskStatus.includes("done")) {
+                    const rawTaskStatus = (row["TASK STATUS"] || '').toString().toLowerCase().trim();
+                    if (rawTaskStatus.includes("completed") || rawTaskStatus.includes("closed") || rawTaskStatus.includes("done")) {
                         completed++;
-                    } else if (taskStatus.includes("pending") || taskStatus.includes("open") || taskStatus.includes("failed")) {
-                        pending++;
+                        tr.setAttribute("data-task-pending", "false");
                     } else {
-                        // Count other statuses as pending by default
                         pending++;
+                        tr.setAttribute("data-task-pending", "true");
                     }
 
+                    // Clean Phone layout: Clickable Icon + Plain Phone Text
                     const phone = row["PHN NO."] || '';
-                    const phoneHTML = phone ? `<a href="tel:${phone}" class="call-btn">📞 ${phone}</a>` : '-';
+                    const phoneHTML = phone 
+                        ? `<div class="phone-container"><a href="tel:${phone}" class="call-icon-btn" title="Call Patient">📞</a><span>${phone}</span></div>` 
+                        : '-';
 
                     const remarksText = row["REMARKS"] || '-';
                     const remarksWithDetails = `
@@ -437,9 +458,7 @@
                     tableBody.appendChild(tr);
                 });
 
-                // Update Stats Widget Top Bar
                 updateTaskCounters(total, completed, pending);
-
                 filterTable();
 
             } catch (error) {
@@ -449,7 +468,30 @@
             }
         }
 
-        // Helper to update counter UI
+        // Pending Card Filter Toggle
+        function togglePendingFilter() {
+            isPendingOnlyFilterActive = !isPendingOnlyFilterActive;
+            const card = document.getElementById("pendingStatCard");
+            if (isPendingOnlyFilterActive) {
+                card.classList.add("stat-card-active");
+            } else {
+                card.classList.remove("stat-card-active");
+            }
+            filterTable();
+        }
+
+        function clearPendingFilter() {
+            if (isPendingOnlyFilterActive) {
+                clearPendingFilterUI();
+                filterTable();
+            }
+        }
+
+        function clearPendingFilterUI() {
+            isPendingOnlyFilterActive = false;
+            document.getElementById("pendingStatCard").classList.remove("stat-card-active");
+        }
+
         function updateTaskCounters(total, completed, pending) {
             document.getElementById("totalTasks").innerText = total;
             document.getElementById("completedTasks").innerText = completed;
@@ -497,7 +539,9 @@
             for (let i = 1; i < tr.length; i++) {
                 let showRow = false;
                 const td = tr[i].getElementsByTagName("td");
+                const isPending = tr[i].getAttribute("data-task-pending") === "true";
                 
+                // Text search matching
                 for (let j = 0; j < td.length; j++) {
                     if (td[j]) {
                         if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
@@ -505,6 +549,11 @@
                             break;
                         }
                     }
+                }
+
+                // If Pending Filter is active, filter out non-pending
+                if (isPendingOnlyFilterActive && !isPending) {
+                    showRow = false;
                 }
 
                 if (showRow) {
