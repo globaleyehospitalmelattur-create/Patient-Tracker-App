@@ -85,29 +85,52 @@
         .stat-completed { color: #166534; }
         .stat-pending { color: #991b1b; }
 
-        /* Emoji Counts Bar Widget */
+        /* Stylish Emoji Counts Bar Widget */
         .emoji-stats-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 4px;
+            gap: 6px;
             margin-bottom: 8px;
         }
         .emoji-stat-card {
-            background: #ffffff;
-            padding: 4px;
-            border-radius: 6px;
+            padding: 6px 4px;
+            border-radius: 8px;
             text-align: center;
-            border: 1px solid #e2e8f0;
-            font-size: 12px;
-            font-weight: 700;
+            font-size: 13px;
+            font-weight: 800;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+            transition: all 0.2s ease;
         }
         .emoji-stat-card .emoji-icon {
-            font-size: 16px; /* Header Widget Emoji Size Raised */
+            font-size: 18px;
             line-height: 1;
+            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+        }
+
+        /* Unique Outer Box Styles for Each Emoji Type */
+        .emoji-card-excellent {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+        }
+        .emoji-card-good {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+        }
+        .emoji-card-average {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border: 1px solid #fde68a;
+            color: #b45309;
+        }
+        .emoji-card-bad {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fecaca;
+            color: #b91c1c;
         }
 
         /* Compact Control Panel Styles */
@@ -214,7 +237,7 @@
 
         /* Larger Emoji Display for Table & Mobile Cards */
         .emoji-large {
-            font-size: 26px; /* Increased emoji size */
+            font-size: 26px;
             line-height: 1;
             display: inline-block;
         }
@@ -345,12 +368,20 @@
         </div>
     </div>
 
-    <!-- Emoji Counts Feedback Summary Widget -->
+    <!-- Enhanced Emoji Counts Feedback Summary Widget -->
     <div class="emoji-stats-container">
-        <div class="emoji-stat-card"><span class="emoji-icon">🤩</span> <span id="countExcellent">0</span></div>
-        <div class="emoji-stat-card"><span class="emoji-icon">😊</span> <span id="countGood">0</span></div>
-        <div class="emoji-stat-card"><span class="emoji-icon">😐</span> <span id="countAverage">0</span></div>
-        <div class="emoji-stat-card"><span class="emoji-icon">😡</span> <span id="countBad">0</span></div>
+        <div class="emoji-stat-card emoji-card-excellent">
+            <span class="emoji-icon">🤩</span> <span id="countExcellent">0</span>
+        </div>
+        <div class="emoji-stat-card emoji-card-good">
+            <span class="emoji-icon">😊</span> <span id="countGood">0</span>
+        </div>
+        <div class="emoji-stat-card emoji-card-average">
+            <span class="emoji-icon">😐</span> <span id="countAverage">0</span>
+        </div>
+        <div class="emoji-stat-card emoji-card-bad">
+            <span class="emoji-icon">😡</span> <span id="countBad">0</span>
+        </div>
     </div>
 
     <!-- Search & Filters -->
