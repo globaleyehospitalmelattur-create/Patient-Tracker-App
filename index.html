@@ -333,6 +333,7 @@
         <div class="input-group">
             <label for="monthSelect">Select Month</label>
             <select id="monthSelect" onchange="loadSheetData()">
+                <option value="ALL">ALL MONTHS</option>
                 <option value="January">January</option>
                 <option value="February">February</option>
                 <option value="March">March</option>
@@ -373,14 +374,12 @@
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwF2Z-ZPDr5vCutpqpKf_sVPTyCdPqEIIrtTWhg6qNH368W9amj1a2qC9bYpNGfHidjyw/exec"; 
+        const monthList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         
         let isPendingOnlyFilterActive = false;
 
         function setCurrentMonth() {
-            const monthNames = ["January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-            ];
-            const currentMonthName = monthNames[new Date().getMonth()];
+            const currentMonthName = monthList[new Date().getMonth()];
             document.getElementById("monthSelect").value = currentMonthName;
         }
 
@@ -391,32 +390,48 @@
             document.getElementById("searchInput").value = ""; 
             clearPendingFilterUI();
 
-            tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 25px; color:#64748b; font-weight:600;">Loading ${selectedMonth} data...</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 25px; color:#64748b; font-weight:600;">Loading ${selectedMonth === 'ALL' ? 'All Months' : selectedMonth} data...</td></tr>`;
 
             try {
-                const response = await fetch(`${WEB_APP_URL}?sheet=${selectedMonth}`);
-                const data = await response.json();
+                let combinedData = [];
 
-                if (data.error || !Array.isArray(data) || data.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 25px; color:#ef4444; font-weight:600;">No data found for ${selectedMonth}</td></tr>`;
+                if (selectedMonth === "ALL") {
+                    // Fetch data from all months in parallel
+                    const fetchPromises = monthList.map(m => 
+                        fetch(`${WEB_APP_URL}?sheet=${m}`)
+                            .then(res => res.json())
+                            .then(data => Array.isArray(data) ? data : [])
+                            .catch(() => [])
+                    );
+                    const results = await Promise.all(fetchPromises);
+                    combinedData = results.flat();
+                } else {
+                    const response = await fetch(`${WEB_APP_URL}?sheet=${selectedMonth}`);
+                    const data = await response.json();
+                    if (Array.isArray(data)) {
+                        combinedData = data;
+                    }
+                }
+
+                if (combinedData.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 25px; color:#ef4444; font-weight:600;">No data found</td></tr>`;
                     updateTaskCounters(0, 0, 0);
                     return;
                 }
 
                 tableBody.innerHTML = "";
                 
-                let total = data.length;
+                let total = combinedData.length;
                 let completed = 0;
                 let pending = 0;
 
-                data.forEach(row => {
+                combinedData.forEach(row => {
                     const tr = document.createElement("tr");
 
                     const callStatusBadge = getBadgeHTML(row["CALL STATUS"]);
                     const taskStatusBadge = getBadgeHTML(row["TASK STATUS"]);
                     const feedbackData = getFeedbackInfo(row["FEEDBACK"]);
 
-                    // Calculate Task Counts based on TASK STATUS
                     const rawTaskStatus = (row["TASK STATUS"] || '').toString().toLowerCase().trim();
                     if (rawTaskStatus.includes("completed") || rawTaskStatus.includes("closed") || rawTaskStatus.includes("done")) {
                         completed++;
@@ -426,7 +441,6 @@
                         tr.setAttribute("data-task-pending", "true");
                     }
 
-                    // Clean Phone layout: Clickable Icon + Plain Phone Text
                     const phone = row["PHN NO."] || '';
                     const phoneHTML = phone 
                         ? `<div class="phone-container"><a href="tel:${phone}" class="call-icon-btn" title="Call Patient">📞</a><span>${phone}</span></div>` 
@@ -468,7 +482,6 @@
             }
         }
 
-        // Pending Card Filter Toggle
         function togglePendingFilter() {
             isPendingOnlyFilterActive = !isPendingOnlyFilterActive;
             const card = document.getElementById("pendingStatCard");
@@ -541,7 +554,6 @@
                 const td = tr[i].getElementsByTagName("td");
                 const isPending = tr[i].getAttribute("data-task-pending") === "true";
                 
-                // Text search matching
                 for (let j = 0; j < td.length; j++) {
                     if (td[j]) {
                         if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
@@ -551,7 +563,6 @@
                     }
                 }
 
-                // If Pending Filter is active, filter out non-pending
                 if (isPendingOnlyFilterActive && !isPending) {
                     showRow = false;
                 }
