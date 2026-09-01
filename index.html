@@ -11,6 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Global CRM">
     
+    <!-- 2X Zoomed Logo Integration -->
     <link rel="icon" type="image/png" href="http://googleusercontent.com/profile/picture/8">
     <link rel="apple-touch-icon" href="http://googleusercontent.com/profile/picture/8">
     <link rel="manifest" href="manifest.json">
@@ -32,27 +33,30 @@
             background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
             color: #ffffff;
             text-align: center;
-            padding: 12px 10px;
-            border-radius: 10px;
+            padding: 16px 12px;
+            border-radius: 12px;
             margin-bottom: 8px;
-            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 10px;
         }
         
+        /* 2X Zoomed Logo Style (144px height and width) */
         .header-logo {
-            width: 72px;
-            height: 72px;
+            width: 144px;
+            height: 144px;
             object-fit: contain;
-            border-radius: 8px;
+            border-radius: 12px;
             background: #ffffff;
-            padding: 4px;
+            padding: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         
         .header-titles h1 {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 800;
             letter-spacing: 0.5px;
             text-transform: uppercase;
@@ -60,7 +64,7 @@
             margin-bottom: 2px;
         }
         .header-titles p {
-            font-size: 12px;
+            font-size: 13px;
             color: #93c5fd;
             font-weight: 600;
             letter-spacing: 0.3px;
@@ -200,14 +204,12 @@
         }
         .wa-custom-icon { width: 36px; height: 36px; object-fit: contain; }
 
-        /* Clean Feedback Emoji (No Box) */
         .emoji-plain {
             font-size: 20px;
             line-height: 1;
             display: inline-block;
         }
 
-        /* Patient Name Bold Style */
         .patient-name-bold {
             font-weight: 800 !important;
             color: #0f172a;
@@ -229,7 +231,6 @@
             td { display: flex; flex-direction: column; border-bottom: none; padding: 0; font-size: 11px; }
             td[data-label="REG DATE"], td[data-label="PATIENT ID"], td[data-label="CALL STATUS"], td[data-label="CALL TYPE"] { grid-column: span 3; }
             
-            /* Removed Box Styling from Phone & Name */
             td[data-label="PATIENT NAME"], td[data-label="PHN NO."] { 
                 grid-column: span 6; 
                 background: transparent; 
@@ -239,7 +240,6 @@
             
             td[data-label="FEEDBACK"], td[data-label="ASSIGNED TO"], td[data-label="CALL DUE DATE"], td[data-label="TASK STATUS"] { grid-column: span 3; }
             
-            /* Removed Box Styling from Remarks */
             td[data-label="REMARKS"] { 
                 grid-column: span 12; 
                 background: transparent; 
@@ -254,7 +254,7 @@
 <body>
 
     <div class="hospital-header">
-        <img src="http://googleusercontent.com/profile/picture/8" alt="Global CRM Logo" class="header-logo">
+        <img src="http://googleusercontent.com/profile/picture/8" alt="Global CRM Logo 2X" class="header-logo">
         <div class="header-titles">
             <h1>GLOBAL CRM</h1>
             <p>Global Eye Hospital Melattur</p>
