@@ -11,30 +11,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Global CRM">
     
-    <link rel="icon" type="image/png" href="http://googleusercontent.com/profile/picture/3">
-    <link rel="apple-touch-icon" href="http://googleusercontent.com/profile/picture/3">
+    <link rel="icon" type="image/png" href="http://googleusercontent.com/profile/picture/6">
+    <link rel="apple-touch-icon" href="http://googleusercontent.com/profile/picture/6">
 
-    <link rel="manifest" href='data:application/manifest+json,{
-        "name": "Global CRM",
-        "short_name": "Global CRM",
-        "description": "Global Eye Hospital CRM Application",
-        "start_url": "./",
-        "display": "standalone",
-        "background_color": "#f8fafc",
-        "theme_color": "#0f172a",
-        "icons": [
-            {
-                "src": "http://googleusercontent.com/profile/picture/3",
-                "sizes": "192x192",
-                "type": "image/png"
-            },
-            {
-                "src": "http://googleusercontent.com/profile/picture/3",
-                "sizes": "512x512",
-                "type": "image/png"
-            }
-        ]
-    }'>
+    <link rel="manifest" href="manifest.json">
 
     <style>
         * {
@@ -49,7 +29,6 @@
             color: #0f172a;
         }
         
-        /* Compact Header Banner */
         .hospital-header {
             background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
             color: #ffffff;
@@ -64,10 +43,12 @@
             gap: 10px;
         }
         .header-logo {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             object-fit: contain;
             border-radius: 6px;
+            background: #ffffff;
+            padding: 2px;
         }
         .header-titles h1 {
             font-size: 16px;
@@ -85,7 +66,6 @@
             text-transform: uppercase;
         }
 
-        /* PWA Install Banner Container */
         .pwa-banner {
             display: none;
             background: #ffffff;
@@ -103,8 +83,8 @@
             gap: 8px;
         }
         .pwa-info img {
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             object-fit: contain;
         }
         .pwa-info-text {
@@ -127,11 +107,7 @@
             border-radius: 6px;
             cursor: pointer;
         }
-        .pwa-btn:active {
-            background-color: #1d4ed8;
-        }
 
-        /* Compact Stats Bar Widget */
         .stats-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -145,35 +121,15 @@
             text-align: center;
             border: 1px solid #e2e8f0;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-            transition: transform 0.15s, box-shadow 0.15s;
         }
-        .stat-card-clickable {
-            cursor: pointer;
-        }
-        .stat-card-clickable:active {
-            transform: scale(0.98);
-        }
-        .stat-card-active {
-            border: 1.5px solid #ef4444;
-            background-color: #fef2f2;
-        }
-        .stat-card .stat-title {
-            font-size: 9px;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-bottom: 1px;
-        }
-        .stat-card .stat-value {
-            font-size: 15px;
-            font-weight: 800;
-        }
+        .stat-card-clickable { cursor: pointer; }
+        .stat-card-active { border: 1.5px solid #ef4444; background-color: #fef2f2; }
+        .stat-card .stat-title { font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; }
+        .stat-card .stat-value { font-size: 15px; font-weight: 800; }
         .stat-total { color: #2563eb; }
         .stat-completed { color: #166534; }
         .stat-pending { color: #991b1b; }
 
-        /* Emoji Counts Bar Widget */
         .emoji-stats-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -190,287 +146,74 @@
             align-items: center;
             justify-content: center;
             gap: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
-            transition: all 0.2s ease;
         }
-        .emoji-stat-card .emoji-icon {
-            font-size: 18px;
-            line-height: 1;
-            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
-        }
+        .emoji-card-excellent { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+        .emoji-card-good { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; }
+        .emoji-card-average { background: #fffbeb; border: 1px solid #fde68a; color: #b45309; }
+        .emoji-card-bad { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
 
-        .emoji-card-excellent {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-            border: 1px solid #bbf7d0;
-            color: #15803d;
-        }
-        .emoji-card-good {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border: 1px solid #bfdbfe;
-            color: #1d4ed8;
-        }
-        .emoji-card-average {
-            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-            border: 1px solid #fde68a;
-            color: #b45309;
-        }
-        .emoji-card-bad {
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-            border: 1px solid #fecaca;
-            color: #b91c1c;
-        }
-
-        /* Compact Control Panel Styles */
         .controls-container {
             background: #ffffff;
             padding: 8px 10px;
             border-radius: 10px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
             margin-bottom: 8px;
             display: flex;
             flex-direction: column;
             gap: 6px;
             border: 1px solid #e2e8f0;
         }
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        label {
-            font-size: 9px;
-            font-weight: 700;
-            color: #475569;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-        }
+        .input-group { display: flex; flex-direction: column; gap: 2px; }
+        label { font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase; }
         select, input {
             width: 100%;
             padding: 7px 10px;
             font-size: 12px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
-            outline: none;
             background-color: #f8fafc;
-            color: #0f172a;
         }
-        select:focus, input:focus {
-            border-color: #2563eb;
-            background-color: #ffffff;
-        }
-        
-        /* Desktop Table View */
-        .table-container {
-            width: 100%;
-        }
+
+        .table-container { width: 100%; }
         table {
             width: 100%;
             border-collapse: collapse;
             background: #ffffff;
             border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
             border: 1px solid #e2e8f0;
         }
-        th, td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #f1f5f9;
-            text-align: left;
-            font-size: 12px;
-        }
-        th {
-            background-color: #1e3a8a;
-            color: white;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-        tr:nth-child(even) {
-            background-color: #f8fafc;
-        }
+        th, td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+        th { background-color: #1e3a8a; color: white; }
 
-        /* Compact Badges */
-        .badge {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 12px;
-            font-size: 9px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.2px;
-            width: fit-content;
-        }
-        .badge-success { background-color: #dcfce7; color: #166534; }
-        .badge-danger { background-color: #fee2e2; color: #991b1b; }
-        .badge-warning { background-color: #fef3c7; color: #92400e; }
-        .badge-default { background-color: #f1f5f9; color: #475569; }
+        .phone-container { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+        .wa-custom-icon { width: 36px; height: 36px; object-fit: contain; }
 
-        /* Phone & WhatsApp Custom Image Icon Action Styles */
-        .phone-container {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 600;
-            color: #0f172a;
-            font-size: 12px;
-        }
-        .call-icon-btn {
-            color: #2563eb;
-            text-decoration: none;
-            font-size: 16px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .wa-icon-btn {
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.15s ease;
-        }
-        .wa-custom-icon {
-            width: 36px;
-            height: 36px;
-            object-fit: contain;
-            display: block;
-        }
-        .wa-icon-btn:active {
-            transform: scale(1.15);
-        }
-
-        /* Larger Emoji Display for Table */
-        .emoji-large {
-            font-size: 24px;
-            line-height: 1;
-            display: inline-block;
-        }
-
-        /* Feedback label beneath remarks */
-        .feedback-details {
-            font-size: 10px;
-            color: #64748b;
-            font-weight: 600;
-            margin-top: 3px;
-            display: block;
-        }
-
-        /* Mobile Card Layout with Left Border Color Strip */
         @media screen and (max-width: 768px) {
-            table {
-                background: transparent;
-                box-shadow: none;
-                border: none;
-            }
-            thead {
-                display: none;
-            }
+            thead { display: none; }
             tr {
-                position: relative;
                 display: grid;
                 grid-template-columns: repeat(12, 1fr);
                 gap: 6px;
                 background-color: #ffffff;
                 margin-bottom: 10px;
                 border-radius: 10px;
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
                 padding: 10px;
                 border: 1px solid #cbd5e1;
                 border-left-width: 6px !important;
             }
-
-            /* Custom Left Border Colors Based on Feedback */
-            tr.card-border-excellent {
-                border-left-color: #10b981 !important;
-            }
-            tr.card-border-good {
-                border-left-color: #3b82f6 !important;
-            }
-            tr.card-border-average {
-                border-left-color: #f59e0b !important;
-            }
-            tr.card-border-bad {
-                border-left-color: #ef4444 !important;
-            }
-            tr.card-border-other {
-                border-left-color: #94a3b8 !important;
-            }
-
-            td {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                border-bottom: none;
-                padding: 0;
-                text-align: left;
-                font-size: 11px;
-                word-break: break-word;
-            }
-
-            /* --- ROW 1: REG DATE, PATIENT ID, CALL STATUS, CALL TYPE --- */
-            td[data-label="REG DATE"],
-            td[data-label="PATIENT ID"],
-            td[data-label="CALL STATUS"],
-            td[data-label="CALL TYPE"] {
-                grid-column: span 3;
-            }
-
-            /* --- ROW 2: PATIENT NAME, PHN NO. --- */
-            td[data-label="PATIENT NAME"],
-            td[data-label="PHN NO."] {
-                grid-column: span 6;
-                background-color: #f8fafc;
-                padding: 5px 6px;
-                border-radius: 6px;
-                border: 1px solid #f1f5f9;
-            }
-
-            /* --- ROW 3: FEEDBACK, ASSIGNED TO, CALL DUE DATE, TASK STATUS --- */
-            td[data-label="FEEDBACK"],
-            td[data-label="ASSIGNED TO"],
-            td[data-label="CALL DUE DATE"],
-            td[data-label="TASK STATUS"] {
-                grid-column: span 3;
-            }
-
-            /* --- ROW 4: REMARKS --- */
-            td[data-label="REMARKS"] {
-                grid-column: span 12;
-                background-color: #f8fafc;
-                padding: 6px 8px;
-                border-radius: 6px;
-                border: 1px solid #f1f5f9;
-            }
-
-            td[data-label="REMARKS"].is-empty {
-                display: none !important;
-            }
-
-            td::before {
-                content: attr(data-label);
-                font-weight: 700;
-                color: #2563eb;
-                font-size: 8px;
-                text-transform: uppercase;
-                margin-bottom: 2px;
-                letter-spacing: 0.3px;
-            }
-        }
-
-        @media (min-width: 600px) {
-            .controls-container {
-                flex-direction: row;
-                align-items: center;
-            }
-            .input-group {
-                flex: 1;
-            }
+            td { display: flex; flex-direction: column; border-bottom: none; padding: 0; font-size: 11px; }
+            td[data-label="REG DATE"], td[data-label="PATIENT ID"], td[data-label="CALL STATUS"], td[data-label="CALL TYPE"] { grid-column: span 3; }
+            td[data-label="PATIENT NAME"], td[data-label="PHN NO."] { grid-column: span 6; background: #f8fafc; padding: 5px; border-radius: 6px; }
+            td[data-label="FEEDBACK"], td[data-label="ASSIGNED TO"], td[data-label="CALL DUE DATE"], td[data-label="TASK STATUS"] { grid-column: span 3; }
+            td[data-label="REMARKS"] { grid-column: span 12; background: #f8fafc; padding: 6px; border-radius: 6px; }
+            td::before { content: attr(data-label); font-weight: 700; color: #2563eb; font-size: 8px; margin-bottom: 2px; }
         }
     </style>
 </head>
 <body>
 
     <div class="hospital-header">
-        <img src="http://googleusercontent.com/profile/picture/3" alt="Global CRM Logo" class="header-logo">
+        <img src="http://googleusercontent.com/profile/picture/6" alt="Global CRM Logo" class="header-logo">
         <div class="header-titles">
             <h1>GLOBAL CRM</h1>
             <p>Global Eye Hospital Melattur</p>
@@ -479,7 +222,7 @@
 
     <div class="pwa-banner" id="pwaBanner">
         <div class="pwa-info">
-            <img src="http://googleusercontent.com/profile/picture/3" alt="App Logo">
+            <img src="http://googleusercontent.com/profile/picture/6" alt="App Logo">
             <div>
                 <div class="pwa-info-text">Install Global CRM</div>
                 <div class="pwa-info-sub" id="pwaSubText">Add to home screen for fast access</div>
@@ -504,18 +247,10 @@
     </div>
 
     <div class="emoji-stats-container">
-        <div class="emoji-stat-card emoji-card-excellent">
-            <span class="emoji-icon">🤩</span> <span id="countExcellent">0</span>
-        </div>
-        <div class="emoji-stat-card emoji-card-good">
-            <span class="emoji-icon">😊</span> <span id="countGood">0</span>
-        </div>
-        <div class="emoji-stat-card emoji-card-average">
-            <span class="emoji-icon">😐</span> <span id="countAverage">0</span>
-        </div>
-        <div class="emoji-stat-card emoji-card-bad">
-            <span class="emoji-icon">😡</span> <span id="countBad">0</span>
-        </div>
+        <div class="emoji-stat-card emoji-card-excellent">🤩 <span id="countExcellent">0</span></div>
+        <div class="emoji-stat-card emoji-card-good">😊 <span id="countGood">0</span></div>
+        <div class="emoji-stat-card emoji-card-average">😐 <span id="countAverage">0</span></div>
+        <div class="emoji-stat-card emoji-card-bad">😡 <span id="countBad">0</span></div>
     </div>
 
     <div class="controls-container">
@@ -523,7 +258,6 @@
             <label for="searchInput">Search Data</label>
             <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Type Name, ID, Phone...">
         </div>
-
         <div class="input-group">
             <label for="monthSelect">Select Month</label>
             <select id="monthSelect" onchange="loadSheetData()">
@@ -561,34 +295,24 @@
                     <th>REMARKS</th>
                 </tr>
             </thead>
-            <tbody id="tableBody">
-                </tbody>
+            <tbody id="tableBody"></tbody>
         </table>
     </div>
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwF2Z-ZPDr5vCutpqpKf_sVPTyCdPqEIIrtTWhg6qNH368W9amj1a2qC9bYpNGfHidjyw/exec"; 
         const monthList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        
         let isPendingOnlyFilterActive = false;
         let deferredPrompt = null;
 
-        /* PWA Service Worker Inline Setup */
         if ('serviceWorker' in navigator) {
-            const swCode = `
-                const CACHE_NAME = 'global-crm-v1';
-                self.addEventListener('install', (e) => self.skipWaiting());
-                self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
-                self.addEventListener('fetch', (e) => {
-                    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-                });
-            `;
-            const blob = new Blob([swCode], { type: 'text/javascript' });
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl).catch(err => console.log('SW reg error:', err));
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Fail:', err));
+            });
         }
 
-        /* Dynamic PWA Prompt & Installation Handlers */
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -598,20 +322,16 @@
         function installPWA() {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        document.getElementById('pwaBanner').style.display = 'none';
-                    }
+                deferredPrompt.userChoice.then((res) => {
+                    if (res.outcome === 'accepted') document.getElementById('pwaBanner').style.display = 'none';
                     deferredPrompt = null;
                 });
             }
         }
 
-        /* Detect iOS for Add to Home Screen Display */
         function detectiOS() {
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            const isStandalone = window.navigator.standalone;
-            if (isIOS && !isStandalone) {
+            if (isIOS && !window.navigator.standalone) {
                 document.getElementById('pwaBanner').style.display = 'flex';
                 document.getElementById('pwaSubText').innerText = 'Tap Share button & select "Add to Home Screen"';
                 document.getElementById('pwaInstallBtn').style.display = 'none';
@@ -619,236 +339,112 @@
         }
 
         function setCurrentMonth() {
-            const currentMonthName = monthList[new Date().getMonth()];
-            document.getElementById("monthSelect").value = currentMonthName;
+            document.getElementById("monthSelect").value = monthList[new Date().getMonth()];
         }
 
         async function loadSheetData() {
             const selectedMonth = document.getElementById("monthSelect").value;
             const tableBody = document.getElementById("tableBody");
-            
-            document.getElementById("searchInput").value = ""; 
-            clearPendingFilterUI();
-
-            tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px; color:#64748b; font-weight:600; font-size:12px;">Loading ${selectedMonth === 'ALL' ? 'All Months' : selectedMonth} data...</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px;">Loading Data...</td></tr>`;
 
             try {
                 let combinedData = [];
-
                 if (selectedMonth === "ALL") {
-                    const fetchPromises = monthList.map(m => 
-                        fetch(`${WEB_APP_URL}?sheet=${m}`)
-                            .then(res => res.json())
-                            .then(data => Array.isArray(data) ? data : [])
-                            .catch(() => [])
-                    );
+                    const fetchPromises = monthList.map(m => fetch(`${WEB_APP_URL}?sheet=${m}`).then(res => res.json()).catch(() => []));
                     const results = await Promise.all(fetchPromises);
                     combinedData = results.flat();
                 } else {
                     const response = await fetch(`${WEB_APP_URL}?sheet=${selectedMonth}`);
-                    const data = await response.json();
-                    if (Array.isArray(data)) {
-                        combinedData = data;
-                    }
+                    combinedData = await response.json();
                 }
 
-                if (combinedData.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px; color:#ef4444; font-weight:600; font-size:12px;">No data found</td></tr>`;
-                    updateTaskCounters(0, 0, 0);
-                    updateEmojiCounters(0, 0, 0, 0);
+                if (!Array.isArray(combinedData) || combinedData.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px;">No Data Found</td></tr>`;
                     return;
                 }
 
                 tableBody.innerHTML = "";
-                
-                let total = combinedData.length;
-                let completed = 0;
-                let pending = 0;
-
-                // Emoji Counters
-                let countExcellent = 0;
-                let countGood = 0;
-                let countAverage = 0;
-                let countBad = 0;
+                let total = combinedData.length, completed = 0, pending = 0;
+                let cExc = 0, cGood = 0, cAvg = 0, cBad = 0;
 
                 combinedData.forEach(row => {
                     const tr = document.createElement("tr");
-
-                    const callStatusBadge = getBadgeHTML(row["CALL STATUS"]);
-                    const taskStatusBadge = getBadgeHTML(row["TASK STATUS"]);
-                    const feedbackData = getFeedbackInfo(row["FEEDBACK"]);
-
-                    // Add Class for Left Side Border Color
-                    tr.classList.add(`card-border-${feedbackData.key}`);
-
-                    if (feedbackData.key === "excellent") countExcellent++;
-                    else if (feedbackData.key === "good") countGood++;
-                    else if (feedbackData.key === "average") countAverage++;
-                    else if (feedbackData.key === "bad") countBad++;
-
-                    const rawTaskStatus = (row["TASK STATUS"] || '').toString().toLowerCase().trim();
-                    if (rawTaskStatus.includes("completed") || rawTaskStatus.includes("closed") || rawTaskStatus.includes("done")) {
-                        completed++;
-                        tr.setAttribute("data-task-pending", "false");
-                    } else {
-                        pending++;
-                        tr.setAttribute("data-task-pending", "true");
-                    }
-
-                    // Format Phone Number & Add WhatsApp Icon Link
-                    const rawPhone = (row["PHN NO."] || '').toString().replace(/[^0-9]/g, '');
-                    let phoneHTML = '-';
-
-                    if (rawPhone) {
-                        const waPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
-                        phoneHTML = `
-                            <div class="phone-container">
-                                <a href="tel:${rawPhone}" class="call-icon-btn" title="Call Patient">📞</a>
-                                <span>${row["PHN NO."]}</span>
-                                <a href="https://wa.me/${waPhone}" target="_blank" class="wa-icon-btn" title="Send WhatsApp Message">
-                                    <img src="https://lh3.googleusercontent.com/d/1rGKWj9uawRDhVo8XwyAZsDkqPiFPptMC" class="wa-custom-icon" alt="WhatsApp">
-                                </a>
-                            </div>
-                        `;
-                    }
-
-                    const rawRemarks = (row["REMARKS"] || '').toString().trim();
-                    const hasRemarks = rawRemarks.length > 0 && rawRemarks !== '-';
-                    const remarksClass = hasRemarks ? '' : 'is-empty';
+                    const feedback = (row["FEEDBACK"] || '').toString().toLowerCase();
                     
-                    const remarksContent = hasRemarks 
-                        ? `<div>${rawRemarks}</div><span class="feedback-details">Feedback: ${feedbackData.text}</span>` 
-                        : '-';
+                    let key = "other", emoji = "💬";
+                    if (feedback.includes("excellent")) { key = "excellent"; emoji = "🤩"; cExc++; }
+                    else if (feedback.includes("good")) { key = "good"; emoji = "😊"; cGood++; }
+                    else if (feedback.includes("average")) { key = "average"; emoji = "😐"; cAvg++; }
+                    else if (feedback.includes("bad")) { key = "bad"; emoji = "😡"; cBad++; }
+
+                    tr.style.borderLeftColor = key === 'excellent' ? '#10b981' : key === 'good' ? '#3b82f6' : key === 'average' ? '#f59e0b' : key === 'bad' ? '#ef4444' : '#94a3b8';
+
+                    const taskStatus = (row["TASK STATUS"] || '').toString().toLowerCase();
+                    if (taskStatus.includes("completed") || taskStatus.includes("done")) { completed++; tr.setAttribute("data-pending", "false"); }
+                    else { pending++; tr.setAttribute("data-pending", "true"); }
+
+                    const rawPhone = (row["PHN NO."] || '').toString().replace(/[^0-9]/g, '');
+                    const waPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
+                    const phoneHTML = rawPhone ? `
+                        <div class="phone-container">
+                            <a href="tel:${rawPhone}">📞</a>
+                            <span>${row["PHN NO."]}</span>
+                            <a href="https://wa.me/${waPhone}" target="_blank">
+                                <img src="https://lh3.googleusercontent.com/d/1rGKWj9uawRDhVo8XwyAZsDkqPiFPptMC" class="wa-custom-icon" alt="WA">
+                            </a>
+                        </div>` : '-';
 
                     tr.innerHTML = `
                         <td data-label="REG DATE">${row["REG DATE"] || '-'}</td>
                         <td data-label="PATIENT ID">${row["PATIENT ID"] || '-'}</td>
-                        <td data-label="CALL STATUS">${callStatusBadge}</td>
+                        <td data-label="CALL STATUS">${row["CALL STATUS"] || '-'}</td>
                         <td data-label="CALL TYPE">${row["CALL TYPE"] || '-'}</td>
-
-                        <td data-label="PATIENT NAME" style="font-weight:700; color:#0f172a;">${row["PATIENT NAME"] || '-'}</td>
+                        <td data-label="PATIENT NAME">${row["PATIENT NAME"] || '-'}</td>
                         <td data-label="PHN NO.">${phoneHTML}</td>
-
-                        <td data-label="FEEDBACK"><span class="emoji-large">${feedbackData.emoji}</span></td>
+                        <td data-label="FEEDBACK">${emoji}</td>
                         <td data-label="ASSIGNED TO">${row["ASSIGNED TO"] || '-'}</td>
                         <td data-label="CALL DUE DATE">${row["CALL DUE DATE"] || '-'}</td>
-                        <td data-label="TASK STATUS">${taskStatusBadge}</td>
-
-                        <td data-label="REMARKS" class="${remarksClass}">${remarksContent}</td>
+                        <td data-label="TASK STATUS">${row["TASK STATUS"] || '-'}</td>
+                        <td data-label="REMARKS">${row["REMARKS"] || '-'}</td>
                     `;
                     tableBody.appendChild(tr);
                 });
 
-                updateTaskCounters(total, completed, pending);
-                updateEmojiCounters(countExcellent, countGood, countAverage, countBad);
-                filterTable();
+                document.getElementById("totalTasks").innerText = total;
+                document.getElementById("completedTasks").innerText = completed;
+                document.getElementById("pendingTasks").innerText = pending;
+                document.getElementById("countExcellent").innerText = cExc;
+                document.getElementById("countGood").innerText = cGood;
+                document.getElementById("countAverage").innerText = cAvg;
+                document.getElementById("countBad").innerText = cBad;
 
-            } catch (error) {
-                console.error(error);
-                tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px; color:#ef4444; font-weight:600; font-size:12px;">Error loading data. Check Web App URL.</td></tr>`;
-                updateTaskCounters(0, 0, 0);
-                updateEmojiCounters(0, 0, 0, 0);
-            }
-        }
-
-        function togglePendingFilter() {
-            isPendingOnlyFilterActive = !isPendingOnlyFilterActive;
-            const card = document.getElementById("pendingStatCard");
-            if (isPendingOnlyFilterActive) {
-                card.classList.add("stat-card-active");
-            } else {
-                card.classList.remove("stat-card-active");
-            }
-            filterTable();
-        }
-
-        function clearPendingFilter() {
-            if (isPendingOnlyFilterActive) {
-                clearPendingFilterUI();
-                filterTable();
-            }
-        }
-
-        function clearPendingFilterUI() {
-            isPendingOnlyFilterActive = false;
-            document.getElementById("pendingStatCard").classList.remove("stat-card-active");
-        }
-
-        function updateTaskCounters(total, completed, pending) {
-            document.getElementById("totalTasks").innerText = total;
-            document.getElementById("completedTasks").innerText = completed;
-            document.getElementById("pendingTasks").innerText = pending;
-        }
-
-        function updateEmojiCounters(exc, good, avg, bad) {
-            document.getElementById("countExcellent").innerText = exc;
-            document.getElementById("countGood").innerText = good;
-            document.getElementById("countAverage").innerText = avg;
-            document.getElementById("countBad").innerText = bad;
-        }
-
-        function getFeedbackInfo(text) {
-            if (!text) return { emoji: '-', text: 'N/A', key: 'none' };
-            const feedback = text.toString().trim().toLowerCase();
-
-            if (feedback.includes("excellent")) {
-                return { emoji: "🤩", text: text, key: "excellent" };
-            } else if (feedback.includes("good")) {
-                return { emoji: "😊", text: text, key: "good" };
-            } else if (feedback.includes("average")) {
-                return { emoji: "😐", text: text, key: "average" };
-            } else if (feedback.includes("bad")) {
-                return { emoji: "😡", text: text, key: "bad" };
-            } else {
-                return { emoji: "💬", text: text, key: "other" };
-            }
-        }
-
-        function getBadgeHTML(statusText) {
-            if (!statusText) return '-';
-            const status = statusText.toString().trim().toLowerCase();
-            
-            if (status.includes("completed") || status.includes("closed") || status.includes("done")) {
-                return `<span class="badge badge-success">${statusText}</span>`;
-            } else if (status.includes("pending") || status.includes("open") || status.includes("failed")) {
-                return `<span class="badge badge-danger">${statusText}</span>`;
-            } else if (status.includes("progress") || status.includes("follow") || status.includes("due")) {
-                return `<span class="badge badge-warning">${statusText}</span>`;
-            } else {
-                return `<span class="badge badge-default">${statusText}</span>`;
+            } catch (err) {
+                tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px; color:red;">Data Fetch Error</td></tr>`;
             }
         }
 
         function filterTable() {
-            const input = document.getElementById("searchInput");
-            const filter = input.value.toLowerCase();
-            const table = document.getElementById("crmTable");
-            const tr = table.getElementsByTagName("tr");
+            const input = document.getElementById("searchInput").value.toLowerCase();
+            const rows = document.querySelectorAll("#crmTable tbody tr");
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                const isPending = row.getAttribute("data-pending") === "true";
+                let show = text.indexOf(input) > -1;
+                if (isPendingOnlyFilterActive && !isPending) show = false;
+                row.style.display = show ? (window.innerWidth <= 768 ? "grid" : "table-row") : "none";
+            });
+        }
 
-            for (let i = 1; i < tr.length; i++) {
-                let showRow = false;
-                const td = tr[i].getElementsByTagName("td");
-                const isPending = tr[i].getAttribute("data-task-pending") === "true";
-                
-                for (let j = 0; j < td.length; j++) {
-                    if (td[j]) {
-                        if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
-                            showRow = true;
-                            break;
-                        }
-                    }
-                }
+        function togglePendingFilter() {
+            isPendingOnlyFilterActive = !isPendingOnlyFilterActive;
+            document.getElementById("pendingStatCard").classList.toggle("stat-card-active", isPendingOnlyFilterActive);
+            filterTable();
+        }
 
-                if (isPendingOnlyFilterActive && !isPending) {
-                    showRow = false;
-                }
-
-                if (showRow) {
-                    tr[i].style.display = window.innerWidth <= 768 ? "grid" : "table-row";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }
+        function clearPendingFilter() {
+            isPendingOnlyFilterActive = false;
+            document.getElementById("pendingStatCard").classList.remove("stat-card-active");
+            filterTable();
         }
 
         window.onload = function() {
@@ -856,8 +452,6 @@
             setCurrentMonth();
             loadSheetData();
         };
-        window.addEventListener('resize', filterTable);
     </script>
-
 </body>
 </html>
