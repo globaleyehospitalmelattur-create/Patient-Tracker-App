@@ -1,20 +1,19 @@
 {
   "name": "Global CRM",
   "short_name": "Global CRM",
-  "description": "Global Eye Hospital CRM Application",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#0f172a",
+  "background_color": "#ffffff",
+  "theme_color": "#1e3a8a",
   "icons": [
     {
-      "src": "http://googleusercontent.com/profile/picture/8",
+      "src": "https://lh3.googleusercontent.com/d/1RZ6wgEZkUFKMopJlyq7YBMp3w1_9J8bH",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "http://googleusercontent.com/profile/picture/8",
+      "src": "https://lh3.googleusercontent.com/d/1RZ6wgEZkUFKMopJlyq7YBMp3w1_9J8bH",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
