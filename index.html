@@ -24,7 +24,7 @@
             text-align: center;
             padding: 18px 12px;
             border-radius: 14px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
         }
         .hospital-header h1 {
@@ -41,6 +41,37 @@
             font-weight: 500;
             letter-spacing: 0.5px;
         }
+
+        /* Stats Bar Widget */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .stat-card {
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+        }
+        .stat-card .stat-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .stat-card .stat-value {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .stat-total { color: #2563eb; }
+        .stat-completed { color: #166534; }
+        .stat-pending { color: #991b1b; }
 
         /* Control Panel Styles */
         .controls-container {
@@ -260,6 +291,21 @@
         <p>CRM Feedback Management 2026</p>
     </div>
 
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-title">Total Tasks</div>
+            <div class="stat-value stat-total" id="totalTasks">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Completed</div>
+            <div class="stat-value stat-completed" id="completedTasks">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-title">Pending</div>
+            <div class="stat-value stat-pending" id="pendingTasks">0</div>
+        </div>
+    </div>
+
     <div class="controls-container">
         <div class="input-group">
             <label for="searchInput">Search Data</label>
@@ -310,7 +356,6 @@
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwF2Z-ZPDr5vCutpqpKf_sVPTyCdPqEIIrtTWhg6qNH368W9amj1a2qC9bYpNGfHidjyw/exec"; 
 
-        // Current Month Setup Function
         function setCurrentMonth() {
             const monthNames = ["January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"
@@ -324,6 +369,9 @@
             const tableBody = document.getElementById("tableBody");
             document.getElementById("searchInput").value = ""; 
             
+            // Reset counters during load
+            updateTaskCounters(0, 0, 0);
+
             tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 25px; color:#64748b; font-weight:600;">Loading ${selectedMonth} data...</td></tr>`;
 
             try {
@@ -332,16 +380,33 @@
 
                 if (data.error || !Array.isArray(data) || data.length === 0) {
                     tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 25px; color:#ef4444; font-weight:600;">No data found for ${selectedMonth}</td></tr>`;
+                    updateTaskCounters(0, 0, 0);
                     return;
                 }
 
                 tableBody.innerHTML = "";
+                
+                let total = data.length;
+                let completed = 0;
+                let pending = 0;
+
                 data.forEach(row => {
                     const tr = document.createElement("tr");
 
                     const callStatusBadge = getBadgeHTML(row["CALL STATUS"]);
                     const taskStatusBadge = getBadgeHTML(row["TASK STATUS"]);
                     const feedbackData = getFeedbackInfo(row["FEEDBACK"]);
+
+                    // Calculate Task Counts based on TASK STATUS
+                    const taskStatus = (row["TASK STATUS"] || '').toString().toLowerCase().trim();
+                    if (taskStatus.includes("completed") || taskStatus.includes("closed") || taskStatus.includes("done")) {
+                        completed++;
+                    } else if (taskStatus.includes("pending") || taskStatus.includes("open") || taskStatus.includes("failed")) {
+                        pending++;
+                    } else {
+                        // Count other statuses as pending by default
+                        pending++;
+                    }
 
                     const phone = row["PHN NO."] || '';
                     const phoneHTML = phone ? `<a href="tel:${phone}" class="call-btn">📞 ${phone}</a>` : '-';
@@ -372,12 +437,23 @@
                     tableBody.appendChild(tr);
                 });
 
+                // Update Stats Widget Top Bar
+                updateTaskCounters(total, completed, pending);
+
                 filterTable();
 
             } catch (error) {
                 console.error(error);
                 tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 25px; color:#ef4444; font-weight:600;">Error loading data. Check Web App URL.</td></tr>`;
+                updateTaskCounters(0, 0, 0);
             }
+        }
+
+        // Helper to update counter UI
+        function updateTaskCounters(total, completed, pending) {
+            document.getElementById("totalTasks").innerText = total;
+            document.getElementById("completedTasks").innerText = completed;
+            document.getElementById("pendingTasks").innerText = pending;
         }
 
         function getFeedbackInfo(text) {
@@ -439,10 +515,9 @@
             }
         }
 
-        // Page load Sequence
         window.onload = function() {
-            setCurrentMonth(); // Sets current active month by default
-            loadSheetData();   // Loads sheet data for the current month
+            setCurrentMonth();
+            loadSheetData();
         };
         window.addEventListener('resize', filterTable);
     </script>
