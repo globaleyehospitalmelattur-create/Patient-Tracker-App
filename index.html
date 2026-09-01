@@ -191,7 +191,6 @@
                 word-break: break-word;
             }
 
-            /* Custom Row Layout Configurations */
             td[data-label="REG DATE"],
             td[data-label="PATIENT ID"],
             td[data-label="CALL STATUS"] {
@@ -310,6 +309,15 @@
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwF2Z-ZPDr5vCutpqpKf_sVPTyCdPqEIIrtTWhg6qNH368W9amj1a2qC9bYpNGfHidjyw/exec"; 
+
+        // Current Month Setup Function
+        function setCurrentMonth() {
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            const currentMonthName = monthNames[new Date().getMonth()];
+            document.getElementById("monthSelect").value = currentMonthName;
+        }
 
         async function loadSheetData() {
             const selectedMonth = document.getElementById("monthSelect").value;
@@ -431,7 +439,11 @@
             }
         }
 
-        window.onload = loadSheetData;
+        // Page load Sequence
+        window.onload = function() {
+            setCurrentMonth(); // Sets current active month by default
+            loadSheetData();   // Loads sheet data for the current month
+        };
         window.addEventListener('resize', filterTable);
     </script>
 
