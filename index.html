@@ -228,7 +228,7 @@
         .call-icon-btn {
             color: #2563eb;
             text-decoration: none;
-            font-size: 13px;
+            font-size: 16px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -240,14 +240,15 @@
             justify-content: center;
             transition: transform 0.15s ease;
         }
+        /* Doubled WhatsApp icon size from 18px to 36px */
         .wa-custom-icon {
-            width: 18px;
-            height: 18px;
+            width: 36px;
+            height: 36px;
             object-fit: contain;
             display: block;
         }
         .wa-icon-btn:active {
-            transform: scale(1.2);
+            transform: scale(1.15);
         }
 
         /* Larger Emoji Display for Table */
@@ -553,7 +554,7 @@
                         tr.setAttribute("data-task-pending", "true");
                     }
 
-                    // Format Phone Number & Add New Background Removed WhatsApp Link
+                    // Format Phone Number & Add 2X Sized WhatsApp Icon Link
                     const rawPhone = (row["PHN NO."] || '').toString().replace(/[^0-9]/g, '');
                     let phoneHTML = '-';
 
