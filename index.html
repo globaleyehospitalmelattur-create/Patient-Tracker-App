@@ -98,10 +98,10 @@
             text-transform: uppercase;
             width: fit-content;
         }
-        .badge-success { background-color: #dcfce7; color: #15803d; } /* Green */
-        .badge-danger { background-color: #fee2e2; color: #b91c1c; }  /* Red */
-        .badge-warning { background-color: #fef3c7; color: #b45309; } /* Yellow */
-        .badge-default { background-color: #e5e7eb; color: #374151; } /* Grey */
+        .badge-success { background-color: #dcfce7; color: #15803d; }
+        .badge-danger { background-color: #fee2e2; color: #b91c1c; }
+        .badge-warning { background-color: #fef3c7; color: #b45309; }
+        .badge-default { background-color: #e5e7eb; color: #374151; }
 
         /* Call Button Style */
         .call-btn {
@@ -121,7 +121,7 @@
             background-color: #1d4ed8;
         }
 
-        /* Mobile Card Grid Layout */
+        /* Custom Grid Mobile Card Layout */
         @media screen and (max-width: 768px) {
             table {
                 background: transparent;
@@ -132,7 +132,7 @@
             }
             tr {
                 display: grid;
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: repeat(6, 1fr); /* 6 Column Grid Base */
                 gap: 8px;
                 background-color: #ffffff;
                 margin-bottom: 12px;
@@ -151,11 +151,44 @@
                 font-size: 13px;
                 word-break: break-word;
             }
-            
-            td[data-label="FEEDBACK"], 
-            td[data-label="REMARKS"], 
-            td[data-label="PATIENT NAME"] {
+
+            /* 1st Row: REG DATE, PATIENT ID, CALL STATUS (2 cols each) */
+            td[data-label="REG DATE"],
+            td[data-label="PATIENT ID"],
+            td[data-label="CALL STATUS"] {
                 grid-column: span 2;
+            }
+
+            /* 2nd Row: PATIENT NAME (3 cols), PHN NO. (3 cols) */
+            td[data-label="PATIENT NAME"] {
+                grid-column: span 3;
+                background-color: #f9fafb;
+                padding: 6px;
+                border-radius: 6px;
+            }
+            td[data-label="PHN NO."] {
+                grid-column: span 3;
+                background-color: #f9fafb;
+                padding: 6px;
+                border-radius: 6px;
+            }
+
+            /* 3rd Row: CALL TYPE, FEEDBACK, ASSIGNED TO (2 cols each) */
+            td[data-label="CALL TYPE"],
+            td[data-label="FEEDBACK"],
+            td[data-label="ASSIGNED TO"] {
+                grid-column: span 2;
+            }
+
+            /* 4th Row: CALL DUE DATE (3 cols), TASK STATUS (3 cols) */
+            td[data-label="CALL DUE DATE"],
+            td[data-label="TASK STATUS"] {
+                grid-column: span 3;
+            }
+
+            /* 5th Row: REMARKS (Full width - 6 cols) */
+            td[data-label="REMARKS"] {
+                grid-column: span 6;
                 background-color: #f9fafb;
                 padding: 8px;
                 border-radius: 6px;
@@ -188,11 +221,13 @@
     <h1>CRM Feedback 2026</h1>
 
     <div class="controls-container">
+        <!-- Search Field -->
         <div class="input-group">
             <label for="searchInput">Search Data</label>
             <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Type Name, ID, Phone...">
         </div>
 
+        <!-- Month Dropdown -->
         <div class="input-group">
             <label for="monthSelect">Select Month</label>
             <select id="monthSelect" onchange="loadSheetData()">
@@ -212,6 +247,7 @@
         </div>
     </div>
 
+    <!-- Data Display Area -->
     <div class="table-container">
         <table id="crmTable">
             <thead>
@@ -222,15 +258,16 @@
                     <th>PHN NO.</th>
                     <th>CALL STATUS</th>
                     <th>CALL TYPE</th>
+                    <th>FEEDBACK</th>
                     <th>ASSIGNED TO</th>
                     <th>CALL DUE DATE</th>
                     <th>TASK STATUS</th>
-                    <th>FEEDBACK</th>
                     <th>REMARKS</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
-                </tbody>
+                <!-- Data will load here -->
+            </tbody>
         </table>
     </div>
 
@@ -257,25 +294,33 @@
                 data.forEach(row => {
                     const tr = document.createElement("tr");
 
-                    // Status Badge Logic
                     const callStatusBadge = getBadgeHTML(row["CALL STATUS"]);
                     const taskStatusBadge = getBadgeHTML(row["TASK STATUS"]);
 
-                    // Direct Call Button Logic
                     const phone = row["PHN NO."] || '';
                     const phoneHTML = phone ? `<a href="tel:${phone}" class="call-btn">📞 ${phone}</a>` : '-';
 
+                    // HTML Data Elements rendered in explicit requested sequence
                     tr.innerHTML = `
+                        <!-- Row 1 -->
                         <td data-label="REG DATE">${row["REG DATE"] || '-'}</td>
                         <td data-label="PATIENT ID">${row["PATIENT ID"] || '-'}</td>
+                        <td data-label="CALL STATUS">${callStatusBadge}</td>
+
+                        <!-- Row 2 -->
                         <td data-label="PATIENT NAME" style="font-weight:700; color:#111827;">${row["PATIENT NAME"] || '-'}</td>
                         <td data-label="PHN NO.">${phoneHTML}</td>
-                        <td data-label="CALL STATUS">${callStatusBadge}</td>
+
+                        <!-- Row 3 -->
                         <td data-label="CALL TYPE">${row["CALL TYPE"] || '-'}</td>
+                        <td data-label="FEEDBACK">${row["FEEDBACK"] || '-'}</td>
                         <td data-label="ASSIGNED TO">${row["ASSIGNED TO"] || '-'}</td>
+
+                        <!-- Row 4 -->
                         <td data-label="CALL DUE DATE">${row["CALL DUE DATE"] || '-'}</td>
                         <td data-label="TASK STATUS">${taskStatusBadge}</td>
-                        <td data-label="FEEDBACK">${row["FEEDBACK"] || '-'}</td>
+
+                        <!-- Row 5 -->
                         <td data-label="REMARKS">${row["REMARKS"] || '-'}</td>
                     `;
                     tableBody.appendChild(tr);
@@ -289,7 +334,6 @@
             }
         }
 
-        // Helper function for Badges
         function getBadgeHTML(statusText) {
             if (!statusText) return '-';
             const status = statusText.toString().trim().toLowerCase();
