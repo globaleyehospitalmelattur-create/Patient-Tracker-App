@@ -260,13 +260,18 @@
                 grid-column: span 3;
             }
 
-            /* --- ROW 4: REMARKS --- */
+            /* --- ROW 4: REMARKS (Conditionally Displayed) --- */
             td[data-label="REMARKS"] {
                 grid-column: span 12;
                 background-color: #f8fafc;
                 padding: 6px 8px;
                 border-radius: 6px;
                 border: 1px solid #f1f5f9;
+            }
+
+            /* Hide Remarks block if empty on mobile */
+            td[data-label="REMARKS"].is-empty {
+                display: none !important;
             }
 
             td::before {
@@ -434,11 +439,14 @@
                         ? `<div class="phone-container"><a href="tel:${phone}" class="call-icon-btn" title="Call Patient">📞</a><span>${phone}</span></div>` 
                         : '-';
 
-                    const remarksText = row["REMARKS"] || '-';
-                    const remarksWithDetails = `
-                        <div>${remarksText}</div>
-                        <span class="feedback-details">Feedback: ${feedbackData.text}</span>
-                    `;
+                    // Remarks Validation
+                    const rawRemarks = (row["REMARKS"] || '').toString().trim();
+                    const hasRemarks = rawRemarks.length > 0 && rawRemarks !== '-';
+                    const remarksClass = hasRemarks ? '' : 'is-empty';
+                    
+                    const remarksContent = hasRemarks 
+                        ? `<div>${rawRemarks}</div><span class="feedback-details">Feedback: ${feedbackData.text}</span>` 
+                        : '-';
 
                     tr.innerHTML = `
                         <td data-label="REG DATE">${row["REG DATE"] || '-'}</td>
@@ -454,7 +462,7 @@
                         <td data-label="CALL DUE DATE">${row["CALL DUE DATE"] || '-'}</td>
                         <td data-label="TASK STATUS">${taskStatusBadge}</td>
 
-                        <td data-label="REMARKS">${remarksWithDetails}</td>
+                        <td data-label="REMARKS" class="${remarksClass}">${remarksContent}</td>
                     `;
                     tableBody.appendChild(tr);
                 });
