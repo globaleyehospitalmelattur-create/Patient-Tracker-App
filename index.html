@@ -48,7 +48,7 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 6px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .stat-card {
             background: #ffffff;
@@ -84,6 +84,27 @@
         .stat-total { color: #2563eb; }
         .stat-completed { color: #166534; }
         .stat-pending { color: #991b1b; }
+
+        /* Emoji Counts Bar Widget */
+        .emoji-stats-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        .emoji-stat-card {
+            background: #ffffff;
+            padding: 4px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
 
         /* Compact Control Panel Styles */
         .controls-container {
@@ -260,7 +281,7 @@
                 grid-column: span 3;
             }
 
-            /* --- ROW 4: REMARKS (Conditionally Displayed) --- */
+            /* --- ROW 4: REMARKS --- */
             td[data-label="REMARKS"] {
                 grid-column: span 12;
                 background-color: #f8fafc;
@@ -269,7 +290,6 @@
                 border: 1px solid #f1f5f9;
             }
 
-            /* Hide Remarks block if empty on mobile */
             td[data-label="REMARKS"].is-empty {
                 display: none !important;
             }
@@ -316,6 +336,13 @@
             <div class="stat-title">Pending 🔍</div>
             <div class="stat-value stat-pending" id="pendingTasks">0</div>
         </div>
+    </div>
+
+    <div class="emoji-stats-container">
+        <div class="emoji-stat-card"><span>🤩</span> <span id="countExcellent">0</span></div>
+        <div class="emoji-stat-card"><span>😊</span> <span id="countGood">0</span></div>
+        <div class="emoji-stat-card"><span>😐</span> <span id="countAverage">0</span></div>
+        <div class="emoji-stat-card"><span>😡</span> <span id="countBad">0</span></div>
     </div>
 
     <div class="controls-container">
@@ -409,6 +436,7 @@
                 if (combinedData.length === 0) {
                     tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px; color:#ef4444; font-weight:600; font-size:12px;">No data found</td></tr>`;
                     updateTaskCounters(0, 0, 0);
+                    updateEmojiCounters(0, 0, 0, 0);
                     return;
                 }
 
@@ -418,12 +446,24 @@
                 let completed = 0;
                 let pending = 0;
 
+                // Emoji Counters
+                let countExcellent = 0;
+                let countGood = 0;
+                let countAverage = 0;
+                let countBad = 0;
+
                 combinedData.forEach(row => {
                     const tr = document.createElement("tr");
 
                     const callStatusBadge = getBadgeHTML(row["CALL STATUS"]);
                     const taskStatusBadge = getBadgeHTML(row["TASK STATUS"]);
                     const feedbackData = getFeedbackInfo(row["FEEDBACK"]);
+
+                    // Increment Emoji Counts
+                    if (feedbackData.key === "excellent") countExcellent++;
+                    else if (feedbackData.key === "good") countGood++;
+                    else if (feedbackData.key === "average") countAverage++;
+                    else if (feedbackData.key === "bad") countBad++;
 
                     const rawTaskStatus = (row["TASK STATUS"] || '').toString().toLowerCase().trim();
                     if (rawTaskStatus.includes("completed") || rawTaskStatus.includes("closed") || rawTaskStatus.includes("done")) {
@@ -439,7 +479,6 @@
                         ? `<div class="phone-container"><a href="tel:${phone}" class="call-icon-btn" title="Call Patient">📞</a><span>${phone}</span></div>` 
                         : '-';
 
-                    // Remarks Validation
                     const rawRemarks = (row["REMARKS"] || '').toString().trim();
                     const hasRemarks = rawRemarks.length > 0 && rawRemarks !== '-';
                     const remarksClass = hasRemarks ? '' : 'is-empty';
@@ -468,12 +507,14 @@
                 });
 
                 updateTaskCounters(total, completed, pending);
+                updateEmojiCounters(countExcellent, countGood, countAverage, countBad);
                 filterTable();
 
             } catch (error) {
                 console.error(error);
                 tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px; color:#ef4444; font-weight:600; font-size:12px;">Error loading data. Check Web App URL.</td></tr>`;
                 updateTaskCounters(0, 0, 0);
+                updateEmojiCounters(0, 0, 0, 0);
             }
         }
 
@@ -506,20 +547,27 @@
             document.getElementById("pendingTasks").innerText = pending;
         }
 
+        function updateEmojiCounters(exc, good, avg, bad) {
+            document.getElementById("countExcellent").innerText = exc;
+            document.getElementById("countGood").innerText = good;
+            document.getElementById("countAverage").innerText = avg;
+            document.getElementById("countBad").innerText = bad;
+        }
+
         function getFeedbackInfo(text) {
-            if (!text) return { emoji: '-', text: 'N/A' };
+            if (!text) return { emoji: '-', text: 'N/A', key: 'none' };
             const feedback = text.toString().trim().toLowerCase();
 
             if (feedback.includes("excellent")) {
-                return { emoji: "🤩", text: text };
+                return { emoji: "🤩", text: text, key: "excellent" };
             } else if (feedback.includes("good")) {
-                return { emoji: "😊", text: text };
+                return { emoji: "😊", text: text, key: "good" };
             } else if (feedback.includes("average")) {
-                return { emoji: "😐", text: text };
+                return { emoji: "😐", text: text, key: "average" };
             } else if (feedback.includes("bad")) {
-                return { emoji: "😡", text: text };
+                return { emoji: "😡", text: text, key: "bad" };
             } else {
-                return { emoji: "💬", text: text };
+                return { emoji: "💬", text: text, key: "other" };
             }
         }
 
