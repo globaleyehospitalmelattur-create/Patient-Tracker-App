@@ -132,7 +132,7 @@
             }
             tr {
                 display: grid;
-                grid-template-columns: repeat(6, 1fr); /* 6 Column Grid Base */
+                grid-template-columns: repeat(6, 1fr);
                 gap: 8px;
                 background-color: #ffffff;
                 margin-bottom: 12px;
@@ -152,14 +152,13 @@
                 word-break: break-word;
             }
 
-            /* 1st Row: REG DATE, PATIENT ID, CALL STATUS (2 cols each) */
+            /* Row Configurations */
             td[data-label="REG DATE"],
             td[data-label="PATIENT ID"],
             td[data-label="CALL STATUS"] {
                 grid-column: span 2;
             }
 
-            /* 2nd Row: PATIENT NAME (3 cols), PHN NO. (3 cols) */
             td[data-label="PATIENT NAME"] {
                 grid-column: span 3;
                 background-color: #f9fafb;
@@ -173,20 +172,17 @@
                 border-radius: 6px;
             }
 
-            /* 3rd Row: CALL TYPE, FEEDBACK, ASSIGNED TO (2 cols each) */
             td[data-label="CALL TYPE"],
             td[data-label="FEEDBACK"],
             td[data-label="ASSIGNED TO"] {
                 grid-column: span 2;
             }
 
-            /* 4th Row: CALL DUE DATE (3 cols), TASK STATUS (3 cols) */
             td[data-label="CALL DUE DATE"],
             td[data-label="TASK STATUS"] {
                 grid-column: span 3;
             }
 
-            /* 5th Row: REMARKS (Full width - 6 cols) */
             td[data-label="REMARKS"] {
                 grid-column: span 6;
                 background-color: #f9fafb;
@@ -221,13 +217,11 @@
     <h1>CRM Feedback 2026</h1>
 
     <div class="controls-container">
-        <!-- Search Field -->
         <div class="input-group">
             <label for="searchInput">Search Data</label>
             <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Type Name, ID, Phone...">
         </div>
 
-        <!-- Month Dropdown -->
         <div class="input-group">
             <label for="monthSelect">Select Month</label>
             <select id="monthSelect" onchange="loadSheetData()">
@@ -247,7 +241,6 @@
         </div>
     </div>
 
-    <!-- Data Display Area -->
     <div class="table-container">
         <table id="crmTable">
             <thead>
@@ -266,8 +259,7 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <!-- Data will load here -->
-            </tbody>
+                </tbody>
         </table>
     </div>
 
@@ -296,31 +288,26 @@
 
                     const callStatusBadge = getBadgeHTML(row["CALL STATUS"]);
                     const taskStatusBadge = getBadgeHTML(row["TASK STATUS"]);
+                    const feedbackWithEmoji = getFeedbackEmoji(row["FEEDBACK"]);
 
                     const phone = row["PHN NO."] || '';
                     const phoneHTML = phone ? `<a href="tel:${phone}" class="call-btn">📞 ${phone}</a>` : '-';
 
-                    // HTML Data Elements rendered in explicit requested sequence
                     tr.innerHTML = `
-                        <!-- Row 1 -->
                         <td data-label="REG DATE">${row["REG DATE"] || '-'}</td>
                         <td data-label="PATIENT ID">${row["PATIENT ID"] || '-'}</td>
                         <td data-label="CALL STATUS">${callStatusBadge}</td>
 
-                        <!-- Row 2 -->
                         <td data-label="PATIENT NAME" style="font-weight:700; color:#111827;">${row["PATIENT NAME"] || '-'}</td>
                         <td data-label="PHN NO.">${phoneHTML}</td>
 
-                        <!-- Row 3 -->
                         <td data-label="CALL TYPE">${row["CALL TYPE"] || '-'}</td>
-                        <td data-label="FEEDBACK">${row["FEEDBACK"] || '-'}</td>
+                        <td data-label="FEEDBACK">${feedbackWithEmoji}</td>
                         <td data-label="ASSIGNED TO">${row["ASSIGNED TO"] || '-'}</td>
 
-                        <!-- Row 4 -->
                         <td data-label="CALL DUE DATE">${row["CALL DUE DATE"] || '-'}</td>
                         <td data-label="TASK STATUS">${taskStatusBadge}</td>
 
-                        <!-- Row 5 -->
                         <td data-label="REMARKS">${row["REMARKS"] || '-'}</td>
                     `;
                     tableBody.appendChild(tr);
@@ -331,6 +318,24 @@
             } catch (error) {
                 console.error(error);
                 tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px; color:#ef4444;">Error loading data. Check Web App URL.</td></tr>`;
+            }
+        }
+
+        // Emoji mapping function for Feedback
+        function getFeedbackEmoji(text) {
+            if (!text) return '-';
+            const feedback = text.toString().trim().toLowerCase();
+
+            if (feedback.includes("excellent")) {
+                return `🤩 ${text}`;
+            } else if (feedback.includes("good")) {
+                return `😊 ${text}`;
+            } else if (feedback.includes("average")) {
+                return `😐 ${text}`;
+            } else if (feedback.includes("bad")) {
+                return `😡 ${text}`;
+            } else {
+                return text;
             }
         }
 
