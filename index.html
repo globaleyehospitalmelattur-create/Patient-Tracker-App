@@ -5,41 +5,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRM Feedback 2026</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; }
-        h1 { text-align: center; color: #333; }
-        .controls { margin-bottom: 20px; text-align: center; }
-        select { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
-        .table-container { overflow-x: auto; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        th, td { padding: 12px 15px; border: 1px solid #ddd; text-align: left; }
-        th { background-color: #007bff; color: white; white-space: nowrap; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            padding: 12px;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #1a73e8;
+        }
+        .controls-container {
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            outline: none;
+        }
+        select:focus, input:focus {
+            border-color: #1a73e8;
+        }
+        .table-container {
+            overflow-x: auto;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 900px;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        th {
+            background-color: #1a73e8;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        /* Responsive Layout for Desktop */
+        @media (min-width: 600px) {
+            .controls-container {
+                flex-direction: row;
+                align-items: center;
+            }
+            .input-group {
+                flex: 1;
+            }
+            h1 {
+                font-size: 24px;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <h1>CRM Feedback 2026 Dashboard</h1>
+    <h1>CRM Feedback 2026</h1>
 
-    <div class="controls">
-        <label for="monthSelect"><b>Select Month: </b></label>
-        <select id="monthSelect" onchange="loadSheetData()">
-            <option value="January">January</option>
-            <option value="February">February</option>
-            <option value="March">March</option>
-            <option value="April">April</option>
-            <option value="May">May</option>
-            <option value="June">June</option>
-            <option value="July">July</option>
-            <option value="August">August</option>
-            <option value="September">September</option>
-            <option value="October">October</option>
-            <option value="November">November</option>
-            <option value="December">December</option>
-        </select>
+    <div class="controls-container">
+        <div class="input-group">
+            <label for="searchInput">Search Data</label>
+            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Name, ID, Phone no, Status...">
+        </div>
+
+        <div class="input-group">
+            <label for="monthSelect">Select Month</label>
+            <select id="monthSelect" onchange="loadSheetData()">
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+            </select>
+        </div>
     </div>
 
     <div class="table-container">
-        <table>
+        <table id="crmTable">
             <thead>
                 <tr>
                     <th>REG DATE</th>
@@ -56,26 +149,27 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-            </tbody>
+                </tbody>
         </table>
     </div>
 
     <script>
-        // Copy cheytha Apps Script Web App URL ivide nalkuka
+        // Google Apps Script Web App URL
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwF2Z-ZPDr5vCutpqpKf_sVPTyCdPqEIIrtTWhg6qNH368W9amj1a2qC9bYpNGfHidjyw/exec"; 
 
         async function loadSheetData() {
             const selectedMonth = document.getElementById("monthSelect").value;
             const tableBody = document.getElementById("tableBody");
+            document.getElementById("searchInput").value = ""; // Reset Search Field
             
-            tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center;">Loading ${selectedMonth} data...</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="11" class="no-data">Loading ${selectedMonth} data...</td></tr>`;
 
             try {
                 const response = await fetch(`${WEB_APP_URL}?sheet=${selectedMonth}`);
                 const data = await response.json();
 
-                if (data.error || data.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center;">No data found for ${selectedMonth}</td></tr>`;
+                if (data.error || !Array.isArray(data) || data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="11" class="no-data">No data found for ${selectedMonth}</td></tr>`;
                     return;
                 }
 
@@ -100,7 +194,30 @@
 
             } catch (error) {
                 console.error(error);
-                tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:red;">Data fetch cheyyaan sadhichilla. Web App URL sarikkanonnu parisodhikku.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="11" class="no-data" style="color:red;">Error loading data. Check Web App permissions.</td></tr>`;
+            }
+        }
+
+        // Live Search Filter Function
+        function filterTable() {
+            const input = document.getElementById("searchInput");
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById("crmTable");
+            const tr = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < tr.length; i++) {
+                let showRow = false;
+                const td = tr[i].getElementsByTagName("td");
+                
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        if (td[j].innerText.toLowerCase().indexOf(filter) > -1) {
+                            showRow = true;
+                            break;
+                        }
+                    }
+                }
+                tr[i].style.display = showRow ? "" : "none";
             }
         }
 
