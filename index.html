@@ -1,570 +1,111 @@
 <!DOCTYPE html>
 <html lang="ml">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Patient Call Tracker & Monthly Analytics</title>
-
-  <!-- Libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f0f4f8; padding: 12px; color: #333; }
-    
-    .container { max-width: 100%; margin: 0 auto; }
-    header { 
-      background: linear-gradient(135deg, #2b6cb0, #1a365d); 
-      color: white; 
-      padding: 14px; 
-      border-radius: 12px; 
-      margin-bottom: 12px; 
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header h1 { font-size: 1.1rem; font-weight: 600; }
-
-    .btn-refresh-top {
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.78rem;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .card { background: white; padding: 12px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 12px; }
-    .card h3 { font-size: 0.85rem; color: #4a5568; margin-bottom: 8px; text-transform: uppercase; }
-    
-    .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
-    .export-btns { display: flex; gap: 6px; }
-    .btn-export { border: none; padding: 5px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; color: white; cursor: pointer; }
-    .btn-excel { background-color: #276749; }
-    .btn-pdf { background-color: #c53030; }
-
-    .table-responsive { width: 100%; overflow-x: auto; }
-    .report-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-bottom: 8px; }
-    .report-table th, .report-table td { border: 1px solid #e2e8f0; padding: 8px 4px; text-align: center; }
-    .report-table th { background-color: #edf2f7; color: #2d3748; font-weight: bold; }
-
-    .chart-container { position: relative; width: 100%; height: 260px; margin-top: 10px; }
-
-    .filter-box { background: white; padding: 12px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-    .filter-title { font-size: 0.85rem; font-weight: bold; color: #2d3748; margin-bottom: 8px; }
-    
-    .search-input { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.85rem; margin-bottom: 8px; outline: none; }
-
-    .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    label { font-size: 0.7rem; font-weight: 600; color: #4a5568; display: block; margin-bottom: 2px; }
-    select, input[type="date"] { width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.8rem; background: #fff; outline: none; }
-    
-    .btn-reset { background: #e2e8f0; border: none; padding: 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; color: #4a5568; margin-top: 8px; width: 100%; cursor: pointer; }
-
-    .summary-counter {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #ebf8ff;
-      border: 1px solid #bee3f8;
-      padding: 10px 14px;
-      border-radius: 10px;
-      margin-bottom: 12px;
-      font-size: 0.82rem;
-      color: #2b6cb0;
-      font-weight: 600;
-    }
-    .count-badge { background: #2b6cb0; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.78rem; }
-
-    .data-list { display: flex; flex-direction: column; gap: 10px; }
-    .data-card { background: white; border-radius: 10px; padding: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-left: 4px solid #cbd5e0; }
-    .data-card.pending { border-left-color: #e53e3e; background-color: #fff8f8; }
-    .data-card.completed { border-left-color: #38a169; }
-    
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #edf2f7; padding-bottom: 4px; }
-    .patient-name { font-weight: bold; font-size: 0.95rem; color: #2d3748; }
-    
-    .badge { padding: 3px 6px; border-radius: 4px; font-size: 0.68rem; font-weight: bold; text-transform: uppercase; }
-    .badge-pending { background: #fed7d7; color: #9b2c2c; }
-    .badge-completed { background: #c6f6d5; color: #22543d; }
-    
-    .card-body { font-size: 0.8rem; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; color: #4a5568; }
-    .full-width { grid-column: span 2; }
-    .remarks-box { color: #e53e3e; font-weight: 600; background: #fff; padding: 6px; border-radius: 6px; border: 1px dashed #feb2b2; margin-top: 2px; }
-
-    .phone-link { color: #2b6cb0; text-decoration: none; font-weight: bold; }
-    .loader { text-align: center; padding: 20px; font-size: 0.85rem; font-weight: bold; color: #4a5568; }
-    .error-msg { background: #fff5f5; color: #e53e3e; border: 1px solid #feb2b2; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 10px; font-size: 0.8rem; }
-    .unassigned-text { color: #dd6b20; font-weight: bold; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Feedback 2026</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; }
+        h1 { text-align: center; color: #333; }
+        .controls { margin-bottom: 20px; text-align: center; }
+        select { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+        .table-container { overflow-x: auto; background: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        th, td { padding: 12px 15px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #007bff; color: white; white-space: nowrap; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
 </head>
 <body>
 
-<div class="container">
-  <header>
-    <h1>Patient Call Tracker</h1>
-    <button class="btn-refresh-top" onclick="fetchDataFromNetwork()">🔄 Refresh</button>
-  </header>
+    <h1>CRM Feedback 2026 Dashboard</h1>
 
-  <!-- Staff Summary Table -->
-  <div class="card">
-    <div class="report-header">
-      <h3 id="reportTitle" style="margin-bottom:0;">Staff & Unassigned Call Report</h3>
-      <div class="export-btns">
-        <button class="btn-export btn-excel" onclick="exportToExcel()">📊 Excel</button>
-        <button class="btn-export btn-pdf" onclick="exportToPDF()">📄 PDF</button>
-      </div>
-    </div>
-    
-    <div class="table-responsive">
-      <table class="report-table" id="reportTable">
-        <thead>
-          <tr>
-            <th>Staff Name</th>
-            <th>Total Calls</th>
-            <th>Completed</th>
-            <th>Pending</th>
-          </tr>
-        </thead>
-        <tbody id="staffReport">
-          <tr><td colspan="4">Loading Staff Statistics...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Monthly Graph (Jan - Dec) -->
-  <div class="card">
-    <h3>12 Months Call Trend (Jan - Dec)</h3>
-    <div class="chart-container">
-      <canvas id="monthlyChart"></canvas>
-    </div>
-  </div>
-
-  <!-- Search & Filters -->
-  <div class="filter-box">
-    <div class="filter-title">Search & Filters</div>
-    
-    <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search Patient Name or Phone Number..." onkeyup="applyFilters()">
-
-    <div class="filter-grid">
-      <div>
-        <label>From Date</label>
-        <input type="date" id="fromDate" onchange="applyFilters()">
-      </div>
-      <div>
-        <label>To Date</label>
-        <input type="date" id="toDate" onchange="applyFilters()">
-      </div>
-
-      <div>
-        <label>Assigned Staff</label>
-        <select id="filterStaff" onchange="applyFilters()">
-          <option value="">All Staffs & Unassigned</option>
+    <div class="controls">
+        <label for="monthSelect"><b>Select Month: </b></label>
+        <select id="monthSelect" onchange="loadSheetData()">
+            <option value="January">January</option>
+            <option value="February">February</option>
+            <option value="March">March</option>
+            <option value="April">April</option>
+            <option value="May">May</option>
+            <option value="June">June</option>
+            <option value="July">July</option>
+            <option value="August">August</option>
+            <option value="September">September</option>
+            <option value="October">October</option>
+            <option value="November">November</option>
+            <option value="December">December</option>
         </select>
-      </div>
-
-      <div>
-        <label>Task Status</label>
-        <select id="filterTaskStatus" onchange="applyFilters()">
-          <option value="">All Status</option>
-          <option value="PENDING">PENDING Only</option>
-          <option value="COMPLETED">COMPLETED Only</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Call Status</label>
-        <select id="filterCallStatus" onchange="applyFilters()">
-          <option value="">All Calls</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Call Type</label>
-        <select id="filterCallType" onchange="applyFilters()">
-          <option value="">All Types</option>
-        </select>
-      </div>
     </div>
-    
-    <button class="btn-reset" onclick="resetFilters()">Reset All Filters</button>
-  </div>
 
-  <div class="summary-counter" id="summaryCounterBox" style="display:none;">
-    <span>Showing Records:</span>
-    <span class="count-badge" id="recordCountBadge">0 Records</span>
-  </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>REG DATE</th>
+                    <th>PATIENT ID</th>
+                    <th>PATIENT NAME</th>
+                    <th>PHN NO.</th>
+                    <th>CALL STATUS</th>
+                    <th>FEEDBACK</th>
+                    <th>CALL TYPE</th>
+                    <th>ASSIGNED TO</th>
+                    <th>CALL DUE DATE</th>
+                    <th>TASK STATUS</th>
+                    <th>REMARKS</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+    </div>
 
-  <div id="statusMessage" class="loader">Loading Data...</div>
-  <div class="data-list" id="patientList"></div>
-</div>
+    <script>
+        // Copy cheytha Apps Script Web App URL ivide nalkuka
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwF2Z-ZPDr5vCutpqpKf_sVPTyCdPqEIIrtTWhg6qNH368W9amj1a2qC9bYpNGfHidjyw/exec"; 
 
-<script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwB_pMhB-72hxpuYrMtftBpihiZQOrZMH1EUfQU622RVtNP_sneyHlgGvdFQsQ97z7r/exec';
-  
-  let rawData = [];
-  let chartInstance = null;
+        async function loadSheetData() {
+            const selectedMonth = document.getElementById("monthSelect").value;
+            const tableBody = document.getElementById("tableBody");
+            
+            tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center;">Loading ${selectedMonth} data...</td></tr>`;
 
-  // സ്പെല്ലിംഗ്, സ്പേസ്, ക്യാപിറ്റൽ അക്ഷരങ്ങൾ എന്നിവ തനിയെ മാച്ച് ചെയ്യുന്ന ഫംഗ്ഷൻ
-  function getFlexibleValue(item, possibleKeys) {
-    if (!item) return '';
-    const itemKeys = Object.keys(item);
-    
-    for (let target of possibleKeys) {
-      const targetClean = target.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-      const matchedKey = itemKeys.find(k => k.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() === targetClean);
-      
-      if (matchedKey && item[matchedKey] !== undefined && item[matchedKey] !== null) {
-        return item[matchedKey].toString().trim();
-      }
-    }
-    return '';
-  }
+            try {
+                const response = await fetch(`${WEB_APP_URL}?sheet=${selectedMonth}`);
+                const data = await response.json();
 
-  function parseDateToISO(dateStr) {
-    if (!dateStr) return '';
-    let str = dateStr.toString().trim();
-    if (!str) return '';
+                if (data.error || data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center;">No data found for ${selectedMonth}</td></tr>`;
+                    return;
+                }
 
-    if (/^\d{4}-\d{1,2}-\d{1,2}/.test(str)) {
-      const p = str.split('T')[0].split('-');
-      return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
-    }
+                tableBody.innerHTML = "";
+                data.forEach(row => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${row["REG DATE"] || ''}</td>
+                        <td>${row["PATIENT ID"] || ''}</td>
+                        <td>${row["PATIENT NAME"] || ''}</td>
+                        <td>${row["PHN NO."] || ''}</td>
+                        <td>${row["CALL STATUS"] || ''}</td>
+                        <td>${row["FEEDBACK"] || ''}</td>
+                        <td>${row["CALL TYPE"] || ''}</td>
+                        <td>${row["ASSIGNED TO"] || ''}</td>
+                        <td>${row["CALL DUE DATE"] || ''}</td>
+                        <td>${row["TASK STATUS"] || ''}</td>
+                        <td>${row["REMARKS"] || ''}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
 
-    if (str.includes('/') || str.includes('-')) {
-      const parts = str.split(/[\/\-]/);
-      if (parts.length >= 3) {
-        if (parts[2].length === 4) {
-          return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-        }
-        if (parts[0].length === 4) {
-          return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-        }
-      }
-    }
-    
-    const d = new Date(str);
-    if (!isNaN(d.getTime())) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
-    return '';
-  }
-
-  function formatDateDisplay(isoStr) {
-    if (!isoStr) return 'Blank Date';
-    const parts = isoStr.split('-');
-    if (parts.length === 3) {
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-    return isoStr;
-  }
-
-  async function fetchDataFromNetwork() {
-    const statusMsg = document.getElementById('statusMessage');
-    statusMsg.className = 'loader';
-    statusMsg.style.display = 'block';
-    statusMsg.innerText = 'Syncing Live Google Sheet Data...';
-
-    try {
-      const response = await fetch(SCRIPT_URL + '?nocache=' + new Date().getTime());
-      if (!response.ok) throw new Error('HTTP Status: ' + response.status);
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
-
-      processData(data);
-
-      statusMsg.style.display = 'none';
-      document.getElementById('summaryCounterBox').style.display = 'flex';
-    } catch (error) {
-      console.error('Fetch Error:', error);
-      statusMsg.className = 'error-msg';
-      statusMsg.innerHTML = '⚠️ <b>Data Load ചെയ്യാൻ സാധിച്ചില്ല!</b> Google Script Refresh ചെയ്തു നോക്കുക.';
-    }
-  }
-
-  function processData(data) {
-    rawData = data.map(item => {
-      const rawDate = getFlexibleValue(item, ['REG DATE', 'REGDATE', 'DATE', 'REGISTRATION DATE']);
-      let isoDate = parseDateToISO(rawDate);
-
-      // Assigned To കൃത്യമായി വായിക്കുന്നു
-      let staffVal = getFlexibleValue(item, ['ASSIGNED TO', 'ASSIGNEDTO', 'ASSIGNED', 'STAFF', 'STAFF NAME', 'STAFFNAME']);
-      if (!staffVal || staffVal.toUpperCase() === 'UNDEFINED' || staffVal.toUpperCase() === 'NULL' || staffVal === '') {
-        staffVal = 'UNASSIGNED';
-      } else {
-        // പേരുകളിലെ ആദ്യ അക്ഷരം Capital ആക്കി ബാക്കി വലിപ്പം ക്രമീകരിക്കുന്നു
-        staffVal = staffVal.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-      }
-
-      return {
-        original: item,
-        regDateISO: isoDate,
-        patientName: getFlexibleValue(item, ['PATIENT NAME', 'NAME', 'PATIENT']),
-        patientId: getFlexibleValue(item, ['PATIENT ID', 'ID', 'SL NO', 'SLNO']),
-        phone: getFlexibleValue(item, ['PHN NO.', 'PHN NO', 'PHONE', 'PHONE NO', 'MOBILE', 'CONTACT']),
-        callStatus: getFlexibleValue(item, ['CALL STATUS', 'STATUS']),
-        feedback: getFlexibleValue(item, ['FEEDBACK', 'FEED BACK']),
-        callType: getFlexibleValue(item, ['CALL TYPE', 'TYPE']),
-        assignedTo: staffVal.trim(),
-        taskStatus: getFlexibleValue(item, ['TASK STATUS', 'TASK']).toUpperCase(),
-        remarks: getFlexibleValue(item, ['REMARKS', 'REMARK', 'NOTE'])
-      };
-    });
-
-    populateDropdowns();
-    applyFilters();
-  }
-
-  function populateDropdowns() {
-    const staffSelect = document.getElementById('filterStaff');
-    
-    // ഷീറ്റിലുള്ള എല്ലാ ആളുകളുടെയും പേര് (Rahana, Kavya, Dinsha, Majida) വേർതിരിച്ചെടുക്കുന്നു
-    const staffs = [...new Set(rawData.map(d => d.assignedTo).filter(Boolean))].sort();
-
-    staffSelect.innerHTML = '<option value="">All Staffs & Unassigned</option>';
-    staffs.forEach(s => {
-      staffSelect.innerHTML += `<option value="${s}">${s}</option>`;
-    });
-
-    const callStatusSelect = document.getElementById('filterCallStatus');
-    const callStatuses = [...new Set(rawData.map(d => d.callStatus.toUpperCase()).filter(Boolean))].sort();
-    callStatusSelect.innerHTML = '<option value="">All Calls</option>';
-    callStatuses.forEach(cs => {
-      callStatusSelect.innerHTML += `<option value="${cs}">${cs}</option>`;
-    });
-
-    const callTypeSelect = document.getElementById('filterCallType');
-    const callTypes = [...new Set(rawData.map(d => d.callType.toUpperCase()).filter(Boolean))].sort();
-    callTypeSelect.innerHTML = '<option value="">All Types</option>';
-    callTypes.forEach(ct => {
-      callTypeSelect.innerHTML += `<option value="${ct}">${ct}</option>`;
-    });
-  }
-
-  function updatePerformanceReport(filteredByDateData, fromDate, toDate) {
-    const reportTitle = document.getElementById('reportTitle');
-    
-    if (fromDate && toDate) {
-      reportTitle.innerHTML = `Staff Call Report <span style="font-size:0.75rem; color:#2b6cb0;">(${formatDateDisplay(fromDate)} to ${formatDateDisplay(toDate)})</span>`;
-    } else {
-      reportTitle.innerText = "Overall Staff Call Report (Jan - Dec)";
-    }
-
-    const staffs = [...new Set(rawData.map(d => d.assignedTo).filter(Boolean))].sort();
-    
-    if (staffs.length === 0) {
-      document.getElementById('staffReport').innerHTML = '<tr><td colspan="4">No Data Found</td></tr>';
-      return;
-    }
-
-    let totalCallsSum = 0;
-    let totalCompletedSum = 0;
-    let totalPendingSum = 0;
-
-    let rowsHtml = staffs.map(staff => {
-      const staffData = filteredByDateData.filter(d => d.assignedTo.toLowerCase() === staff.toLowerCase());
-      const totalCalls = staffData.length;
-      const completed = staffData.filter(d => d.taskStatus === 'COMPLETED').length;
-      const pending = totalCalls - completed;
-
-      totalCallsSum += totalCalls;
-      totalCompletedSum += completed;
-      totalPendingSum += pending;
-
-      const isUnassigned = staff.toUpperCase() === 'UNASSIGNED';
-      const displayName = isUnassigned ? '<span class="unassigned-text">⚠️ UNASSIGNED</span>' : `<strong>${staff}</strong>`;
-
-      return `
-        <tr ${isUnassigned ? 'style="background-color:#fffaf0;"' : ''}>
-          <td>${displayName}</td>
-          <td><b>${totalCalls}</b></td>
-          <td style="color:#276749; font-weight:bold;">${completed}</td>
-          <td style="color:#c53030; font-weight:bold;">${pending}</td>
-        </tr>
-      `;
-    }).join('');
-
-    rowsHtml += `
-      <tr style="background-color:#edf2f7; font-weight:bold; border-top:2px solid #cbd5e0;">
-        <td>TOTAL OVERALL</td>
-        <td>${totalCallsSum}</td>
-        <td style="color:#276749;">${totalCompletedSum}</td>
-        <td style="color:#c53030;">${totalPendingSum}</td>
-      </tr>
-    `;
-
-    document.getElementById('staffReport').innerHTML = rowsHtml;
-    renderMonthlyLineChart(filteredByDateData);
-  }
-
-  function renderMonthlyLineChart(filteredData) {
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const monthStats = Array(12).fill(0).map(() => ({ total: 0, completed: 0, pending: 0 }));
-
-    filteredData.forEach(item => {
-      if (item.regDateISO) {
-        const parts = item.regDateISO.split('-');
-        if (parts.length === 3) {
-          const monthNum = parseInt(parts[1], 10);
-          if (monthNum >= 1 && monthNum <= 12) {
-            const index = monthNum - 1;
-            monthStats[index].total += 1;
-            if (item.taskStatus === 'COMPLETED') {
-              monthStats[index].completed += 1;
-            } else {
-              monthStats[index].pending += 1;
+            } catch (error) {
+                console.error(error);
+                tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:red;">Data fetch cheyyaan sadhichilla. Web App URL sarikkanonnu parisodhikku.</td></tr>`;
             }
-          }
         }
-      }
-    });
 
-    const totalData = monthStats.map(m => m.total);
-    const completedData = monthStats.map(m => m.completed);
-    const pendingData = monthStats.map(m => m.pending);
-
-    const ctx = document.getElementById('monthlyChart').getContext('2d');
-    if (chartInstance) chartInstance.destroy();
-
-    chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: monthNames,
-        datasets: [
-          { label: 'Total Calls', data: totalData, borderColor: '#3182ce', backgroundColor: 'rgba(49, 130, 206, 0.1)', fill: true, tension: 0.3, pointRadius: 4 },
-          { label: 'Completed', data: completedData, borderColor: '#38a169', backgroundColor: 'rgba(56, 161, 105, 0.1)', fill: true, tension: 0.3, pointRadius: 4 },
-          { label: 'Pending', data: pendingData, borderColor: '#e53e3e', backgroundColor: 'rgba(229, 62, 62, 0.1)', fill: true, tension: 0.3, pointRadius: 4 }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'top', labels: { font: { size: 10 } } } },
-        scales: { x: { ticks: { font: { size: 10 } } }, y: { beginAtZero: true, ticks: { precision: 0 } } }
-      }
-    });
-  }
-
-  function renderCards(data) {
-    const container = document.getElementById('patientList');
-    container.innerHTML = '';
-    document.getElementById('recordCountBadge').innerText = `${data.length} Records`;
-
-    if (data.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding:15px; background:white; border-radius:10px; font-size:0.85rem;">ഡാറ്റയൊന്നും കണ്ടെത്തിയില്ല!</div>';
-      return;
-    }
-
-    data.forEach(item => {
-      const isCompleted = item.taskStatus === 'COMPLETED';
-      const cardClass = isCompleted ? 'data-card completed' : 'data-card pending';
-      const badgeClass = isCompleted ? 'badge badge-completed' : 'badge badge-pending';
-      const displayStatus = isCompleted ? 'COMPLETED' : 'PENDING';
-      const remarks = item.remarks || '-';
-      const phoneNum = item.phone || '-';
-
-      const card = document.createElement('div');
-      card.className = cardClass;
-      card.innerHTML = `
-        <div class="card-header">
-          <span class="patient-name">${item.patientName || 'N/A'}</span>
-          <span class="${badgeClass}">${displayStatus}</span>
-        </div>
-        <div class="card-body">
-          <div><strong>Reg Date:</strong> ${formatDateDisplay(item.regDateISO)}</div>
-          <div><strong>ID:</strong> ${item.patientId || '-'}</div>
-          <div><strong>Ph No:</strong> ${phoneNum !== '-' ? `<a href="tel:${phoneNum}" class="phone-link">${phoneNum}</a>` : '-'}</div>
-          <div><strong>Call Status:</strong> ${item.callStatus || '-'}</div>
-          <div><strong>Feedback:</strong> ${item.feedback || '-'}</div>
-          <div><strong>Call Type:</strong> ${item.callType || '-'}</div>
-          <div class="full-width"><strong>Assigned To:</strong> ${item.assignedTo.toUpperCase() === 'UNASSIGNED' ? '<span class="unassigned-text">UNASSIGNED</span>' : item.assignedTo}</div>
-          <div class="full-width ${!isCompleted ? 'remarks-box' : ''}">
-            <strong>Remarks:</strong> ${remarks}
-          </div>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-  }
-
-  function applyFilters() {
-    const searchVal = document.getElementById('searchInput').value.toLowerCase();
-    const fromDate = document.getElementById('fromDate').value;
-    const toDate = document.getElementById('toDate').value;
-    const staffVal = document.getElementById('filterStaff').value.trim().toLowerCase();
-    const taskVal = document.getElementById('filterTaskStatus').value.trim().toUpperCase();
-    const callVal = document.getElementById('filterCallStatus').value.trim().toUpperCase();
-    const typeVal = document.getElementById('filterCallType').value.trim().toUpperCase();
-
-    const filteredByDate = rawData.filter(item => {
-      if (!fromDate && !toDate) return true;
-      if (!item.regDateISO) return true;
-      if (fromDate && toDate) return item.regDateISO >= fromDate && item.regDateISO <= toDate;
-      if (fromDate) return item.regDateISO >= fromDate;
-      if (toDate) return item.regDateISO <= toDate;
-      return true;
-    });
-
-    updatePerformanceReport(filteredByDate, fromDate, toDate);
-
-    const finalFiltered = filteredByDate.filter(item => {
-      const nameMatch = item.patientName.toLowerCase().includes(searchVal);
-      const phoneMatch = item.phone.includes(searchVal);
-      const searchMatch = !searchVal || nameMatch || phoneMatch;
-      
-      const staffMatch = !staffVal || item.assignedTo.toLowerCase() === staffVal;
-      
-      let taskMatch = true;
-      if (taskVal === 'COMPLETED') taskMatch = item.taskStatus === 'COMPLETED';
-      else if (taskVal === 'PENDING') taskMatch = item.taskStatus !== 'COMPLETED';
-
-      const callMatch = !callVal || item.callStatus.toUpperCase() === callVal;
-      const typeMatch = !typeVal || item.callType.toUpperCase() === typeVal;
-
-      return searchMatch && staffMatch && taskMatch && callMatch && typeMatch;
-    });
-
-    renderCards(finalFiltered);
-  }
-
-  function resetFilters() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('fromDate').value = '';
-    document.getElementById('toDate').value = '';
-    document.getElementById('filterStaff').value = '';
-    document.getElementById('filterTaskStatus').value = '';
-    document.getElementById('filterCallStatus').value = '';
-    document.getElementById('filterCallType').value = '';
-    applyFilters();
-  }
-
-  function exportToExcel() {
-    const table = document.getElementById("reportTable");
-    const wb = XLSX.utils.table_to_book(table, { sheet: "Call Report" });
-    XLSX.writeFile(wb, "Staff_Call_Report.xlsx");
-  }
-
-  function exportToPDF() {
-    const { jsPDF } = window.jspdf;
-    doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.text("Staff & Unassigned Call Performance Report", 14, 15);
-    doc.autoTable({ html: '#reportTable', startY: 22, theme: 'grid', headStyles: { fillColor: [43, 108, 176] }, styles: { fontSize: 9, halign: 'center' } });
-    doc.save("Staff_Call_Report.pdf");
-  }
-
-  fetchDataFromNetwork();
-</script>
+        window.onload = loadSheetData;
+    </script>
 
 </body>
 </html>
