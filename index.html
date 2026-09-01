@@ -246,7 +246,7 @@
             transform: scale(1.2);
         }
 
-        /* Larger Emoji Display for Table & Mobile Cards */
+        /* Larger Emoji Display for Table */
         .emoji-large {
             font-size: 26px;
             line-height: 1;
@@ -262,7 +262,12 @@
             display: block;
         }
 
-        /* Custom 4-Row Mobile Card Grid Layout */
+        /* Side Vertical Rotated Emoji Tag Styles */
+        .side-emoji-tag {
+            display: none;
+        }
+
+        /* Custom Mobile Card Layout with Vertical Side Label */
         @media screen and (max-width: 768px) {
             table {
                 background: transparent;
@@ -273,15 +278,17 @@
                 display: none;
             }
             tr {
+                position: relative;
                 display: grid;
                 grid-template-columns: repeat(12, 1fr);
                 gap: 6px;
                 background-color: #ffffff;
-                margin-bottom: 8px;
+                margin-bottom: 10px;
                 border-radius: 10px;
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-                padding: 10px;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+                padding: 10px 32px 10px 10px; /* Extra padding on right for vertical tag */
                 border: 1px solid #cbd5e1;
+                overflow: hidden;
             }
             td {
                 display: flex;
@@ -341,6 +348,46 @@
                 text-transform: uppercase;
                 margin-bottom: 2px;
                 letter-spacing: 0.3px;
+            }
+
+            /* --- VERTICAL ROTATED SIDE BOX DESIGN --- */
+            .side-emoji-tag {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: absolute;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                width: 26px;
+                writing-mode: vertical-rl;
+                transform: rotate(180deg);
+                text-align: center;
+                font-size: 9px;
+                font-weight: 800;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                border-left: 1px solid rgba(0, 0, 0, 0.05);
+            }
+            .tag-excellent {
+                background: #dcfce7;
+                color: #15803d;
+            }
+            .tag-good {
+                background: #dbeafe;
+                color: #1d4ed8;
+            }
+            .tag-average {
+                background: #fef3c7;
+                color: #b45309;
+            }
+            .tag-bad {
+                background: #fee2e2;
+                color: #b91c1c;
+            }
+            .tag-other {
+                background: #f1f5f9;
+                color: #475569;
             }
         }
 
@@ -531,7 +578,6 @@
                     let phoneHTML = '-';
 
                     if (rawPhone) {
-                        // Standardize country code for India (+91) if needed
                         const waPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
                         phoneHTML = `
                             <div class="phone-container">
@@ -569,6 +615,9 @@
 
                         <!-- ROW 4 -->
                         <td data-label="REMARKS" class="${remarksClass}">${remarksContent}</td>
+
+                        <!-- VERTICAL SIDE TAG FOR MOBILE -->
+                        <div class="side-emoji-tag tag-${feedbackData.key}">${feedbackData.label}</div>
                     `;
                     tableBody.appendChild(tr);
                 });
@@ -622,19 +671,19 @@
         }
 
         function getFeedbackInfo(text) {
-            if (!text) return { emoji: '-', text: 'N/A', key: 'none' };
+            if (!text) return { emoji: '-', text: 'N/A', key: 'none', label: 'N/A' };
             const feedback = text.toString().trim().toLowerCase();
 
             if (feedback.includes("excellent")) {
-                return { emoji: "🤩", text: text, key: "excellent" };
+                return { emoji: "🤩", text: text, key: "excellent", label: "EXCELLENT" };
             } else if (feedback.includes("good")) {
-                return { emoji: "😊", text: text, key: "good" };
+                return { emoji: "😊", text: text, key: "good", label: "GOOD" };
             } else if (feedback.includes("average")) {
-                return { emoji: "😐", text: text, key: "average" };
+                return { emoji: "😐", text: text, key: "average", label: "AVERAGE" };
             } else if (feedback.includes("bad")) {
-                return { emoji: "😡", text: text, key: "bad" };
+                return { emoji: "😡", text: text, key: "bad", label: "BAD" };
             } else {
-                return { emoji: "💬", text: text, key: "other" };
+                return { emoji: "💬", text: text, key: "other", label: "OTHER" };
             }
         }
 
