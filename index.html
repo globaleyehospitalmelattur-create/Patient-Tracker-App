@@ -11,9 +11,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Global CRM">
     
-    <link rel="icon" type="image/png" href="http://googleusercontent.com/profile/picture/6">
-    <link rel="apple-touch-icon" href="http://googleusercontent.com/profile/picture/6">
-
+    <link rel="icon" type="image/png" href="http://googleusercontent.com/profile/picture/7">
+    <link rel="apple-touch-icon" href="http://googleusercontent.com/profile/picture/7">
     <link rel="manifest" href="manifest.json">
 
     <style>
@@ -186,7 +185,28 @@
         th { background-color: #1e3a8a; color: white; }
 
         .phone-container { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+        
+        /* Removed blue line under Call Icon */
+        .call-icon-btn {
+            text-decoration: none !important;
+            border: none !important;
+            outline: none !important;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
         .wa-custom-icon { width: 36px; height: 36px; object-fit: contain; }
+
+        /* Resized Feedback Emoji (2X Compact Size) */
+        .emoji-2x {
+            font-size: 18px;
+            line-height: 1;
+            display: inline-block;
+            background: #f1f5f9;
+            padding: 4px 6px;
+            border-radius: 6px;
+        }
 
         @media screen and (max-width: 768px) {
             thead { display: none; }
@@ -213,7 +233,7 @@
 <body>
 
     <div class="hospital-header">
-        <img src="http://googleusercontent.com/profile/picture/6" alt="Global CRM Logo" class="header-logo">
+        <img src="http://googleusercontent.com/profile/picture/7" alt="Global CRM Logo" class="header-logo">
         <div class="header-titles">
             <h1>GLOBAL CRM</h1>
             <p>Global Eye Hospital Melattur</p>
@@ -222,7 +242,7 @@
 
     <div class="pwa-banner" id="pwaBanner">
         <div class="pwa-info">
-            <img src="http://googleusercontent.com/profile/picture/6" alt="App Logo">
+            <img src="http://googleusercontent.com/profile/picture/7" alt="App Logo">
             <div>
                 <div class="pwa-info-text">Install Global CRM</div>
                 <div class="pwa-info-sub" id="pwaSubText">Add to home screen for fast access</div>
@@ -387,7 +407,7 @@
                     const waPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
                     const phoneHTML = rawPhone ? `
                         <div class="phone-container">
-                            <a href="tel:${rawPhone}">📞</a>
+                            <a href="tel:${rawPhone}" class="call-icon-btn">📞</a>
                             <span>${row["PHN NO."]}</span>
                             <a href="https://wa.me/${waPhone}" target="_blank">
                                 <img src="https://lh3.googleusercontent.com/d/1rGKWj9uawRDhVo8XwyAZsDkqPiFPptMC" class="wa-custom-icon" alt="WA">
@@ -401,7 +421,7 @@
                         <td data-label="CALL TYPE">${row["CALL TYPE"] || '-'}</td>
                         <td data-label="PATIENT NAME">${row["PATIENT NAME"] || '-'}</td>
                         <td data-label="PHN NO.">${phoneHTML}</td>
-                        <td data-label="FEEDBACK">${emoji}</td>
+                        <td data-label="FEEDBACK"><span class="emoji-2x">${emoji}</span></td>
                         <td data-label="ASSIGNED TO">${row["ASSIGNED TO"] || '-'}</td>
                         <td data-label="CALL DUE DATE">${row["CALL DUE DATE"] || '-'}</td>
                         <td data-label="TASK STATUS">${row["TASK STATUS"] || '-'}</td>
