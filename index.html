@@ -98,12 +98,16 @@
             border-radius: 6px;
             text-align: center;
             border: 1px solid #e2e8f0;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 4px;
+        }
+        .emoji-stat-card .emoji-icon {
+            font-size: 16px; /* Header Widget Emoji Size Raised */
+            line-height: 1;
         }
 
         /* Compact Control Panel Styles */
@@ -208,10 +212,11 @@
             justify-content: center;
         }
 
-        /* Compact Emoji Display */
+        /* Larger Emoji Display for Table & Mobile Cards */
         .emoji-large {
-            font-size: 20px;
+            font-size: 26px; /* Increased emoji size */
             line-height: 1;
+            display: inline-block;
         }
 
         /* Feedback label beneath remarks */
@@ -318,11 +323,13 @@
 </head>
 <body>
 
+    <!-- Compact Header -->
     <div class="hospital-header">
         <h1>CRM FEEDBACK 2026</h1>
         <p>Global Eye Hospital Melattur</p>
     </div>
 
+    <!-- Task Statistics Widget -->
     <div class="stats-container">
         <div class="stat-card" onclick="clearPendingFilter()">
             <div class="stat-title">Total</div>
@@ -338,13 +345,15 @@
         </div>
     </div>
 
+    <!-- Emoji Counts Feedback Summary Widget -->
     <div class="emoji-stats-container">
-        <div class="emoji-stat-card"><span>🤩</span> <span id="countExcellent">0</span></div>
-        <div class="emoji-stat-card"><span>😊</span> <span id="countGood">0</span></div>
-        <div class="emoji-stat-card"><span>😐</span> <span id="countAverage">0</span></div>
-        <div class="emoji-stat-card"><span>😡</span> <span id="countBad">0</span></div>
+        <div class="emoji-stat-card"><span class="emoji-icon">🤩</span> <span id="countExcellent">0</span></div>
+        <div class="emoji-stat-card"><span class="emoji-icon">😊</span> <span id="countGood">0</span></div>
+        <div class="emoji-stat-card"><span class="emoji-icon">😐</span> <span id="countAverage">0</span></div>
+        <div class="emoji-stat-card"><span class="emoji-icon">😡</span> <span id="countBad">0</span></div>
     </div>
 
+    <!-- Search & Filters -->
     <div class="controls-container">
         <div class="input-group">
             <label for="searchInput">Search Data</label>
@@ -371,6 +380,7 @@
         </div>
     </div>
 
+    <!-- Data Display Table Area -->
     <div class="table-container">
         <table id="crmTable">
             <thead>
@@ -389,7 +399,8 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                </tbody>
+                <!-- Dynamically Inserted Rows -->
+            </tbody>
         </table>
     </div>
 
@@ -488,19 +499,23 @@
                         : '-';
 
                     tr.innerHTML = `
+                        <!-- ROW 1 -->
                         <td data-label="REG DATE">${row["REG DATE"] || '-'}</td>
                         <td data-label="PATIENT ID">${row["PATIENT ID"] || '-'}</td>
                         <td data-label="CALL STATUS">${callStatusBadge}</td>
                         <td data-label="CALL TYPE">${row["CALL TYPE"] || '-'}</td>
 
+                        <!-- ROW 2 -->
                         <td data-label="PATIENT NAME" style="font-weight:700; color:#0f172a;">${row["PATIENT NAME"] || '-'}</td>
                         <td data-label="PHN NO.">${phoneHTML}</td>
 
+                        <!-- ROW 3 -->
                         <td data-label="FEEDBACK"><span class="emoji-large">${feedbackData.emoji}</span></td>
                         <td data-label="ASSIGNED TO">${row["ASSIGNED TO"] || '-'}</td>
                         <td data-label="CALL DUE DATE">${row["CALL DUE DATE"] || '-'}</td>
                         <td data-label="TASK STATUS">${taskStatusBadge}</td>
 
+                        <!-- ROW 4 -->
                         <td data-label="REMARKS" class="${remarksClass}">${remarksContent}</td>
                     `;
                     tableBody.appendChild(tr);
