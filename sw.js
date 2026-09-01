@@ -1,29 +1,24 @@
-const CACHE_NAME = 'global-crm-v1';
+const CACHE_NAME = 'global-crm-v2';
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  'http://googleusercontent.com/profile/picture/6'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
-        })
-      );
+    caches.keys().then((keys) => {
+      return Promise.all(keys.map((key) => {
+        if (key !== CACHE_NAME) return caches.delete(key);
+      }));
     })
   );
   self.clients.claim();
@@ -31,8 +26,6 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    caches.match(event.request).then((response) => response || fetch(event.request))
   );
 });
