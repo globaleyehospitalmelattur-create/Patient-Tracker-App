@@ -12,51 +12,55 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5;
-            padding: 15px;
-            color: #333;
+            background-color: #f3f4f6;
+            padding: 12px;
+            color: #1f2937;
         }
         h1 {
             text-align: center;
-            font-size: 22px;
-            margin-bottom: 20px;
-            color: #1a73e8;
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: #1d4ed8;
+            font-weight: 700;
         }
         .controls-container {
             background: #ffffff;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 12px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
         }
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
         }
         label {
-            font-size: 13px;
-            font-weight: bold;
-            color: #555;
+            font-size: 11px;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         select, input {
             width: 100%;
-            padding: 12px;
-            font-size: 15px;
+            padding: 10px 12px;
+            font-size: 14px;
             border: 1px solid #d1d5db;
-            border-radius: 6px;
+            border-radius: 8px;
             outline: none;
             background-color: #f9fafb;
         }
         select:focus, input:focus {
-            border-color: #1a73e8;
+            border-color: #2563eb;
             background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
         
-        /* Table Default Style (Desktop View) */
+        /* Desktop Table View */
         .table-container {
             width: 100%;
         }
@@ -64,66 +68,110 @@
             width: 100%;
             border-collapse: collapse;
             background: #ffffff;
-            border-radius: 10px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
         th, td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
+            padding: 12px 14px;
+            border-bottom: 1px solid #f3f4f6;
             text-align: left;
-            font-size: 14px;
+            font-size: 13px;
         }
         th {
-            background-color: #1a73e8;
+            background-color: #2563eb;
             color: white;
             font-weight: 600;
+            white-space: nowrap;
         }
         tr:nth-child(even) {
-            background-color: #f8f9fa;
+            background-color: #f9fafb;
         }
 
-        /* Mobile View (Card Layout) */
+        /* Status Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            width: fit-content;
+        }
+        .badge-success { background-color: #dcfce7; color: #15803d; } /* Green */
+        .badge-danger { background-color: #fee2e2; color: #b91c1c; }  /* Red */
+        .badge-warning { background-color: #fef3c7; color: #b45309; } /* Yellow */
+        .badge-default { background-color: #e5e7eb; color: #374151; } /* Grey */
+
+        /* Call Button Style */
+        .call-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background-color: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            width: fit-content;
+        }
+        .call-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        /* Mobile Card Grid Layout */
         @media screen and (max-width: 768px) {
             table {
-                box-shadow: none;
                 background: transparent;
+                box-shadow: none;
             }
             thead {
-                display: none; /* Hide headers in mobile */
+                display: none;
             }
             tr {
-                display: block;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
                 background-color: #ffffff;
-                margin-bottom: 15px;
-                border-radius: 10px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                padding: 10px;
+                margin-bottom: 12px;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+                padding: 12px;
+                border: 1px solid #e5e7eb;
             }
             td {
                 display: flex;
-                justify-content: space-between;
-                align-items: center;
-                border-bottom: 1px solid #f0f0f0;
-                padding: 10px 5px;
-                text-align: right;
-            }
-            td:last-child {
+                flex-direction: column;
+                justify-content: center;
                 border-bottom: none;
+                padding: 4px;
+                text-align: left;
+                font-size: 13px;
+                word-break: break-word;
             }
-            /* Adding Labels to Mobile View using data-label attribute */
+            
+            td[data-label="FEEDBACK"], 
+            td[data-label="REMARKS"], 
+            td[data-label="PATIENT NAME"] {
+                grid-column: span 2;
+                background-color: #f9fafb;
+                padding: 8px;
+                border-radius: 6px;
+            }
+
             td::before {
                 content: attr(data-label);
                 font-weight: 700;
-                color: #1a73e8;
-                text-align: left;
-                padding-right: 10px;
-                font-size: 13px;
-                flex-shrink: 0;
+                color: #2563eb;
+                font-size: 10px;
+                text-transform: uppercase;
+                margin-bottom: 2px;
+                letter-spacing: 0.5px;
             }
         }
 
-        /* Desktop Controls Layout */
         @media (min-width: 600px) {
             .controls-container {
                 flex-direction: row;
@@ -140,13 +188,11 @@
     <h1>CRM Feedback 2026</h1>
 
     <div class="controls-container">
-        <!-- Search Field -->
         <div class="input-group">
-            <label for="searchInput">Search Patient</label>
+            <label for="searchInput">Search Data</label>
             <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Type Name, ID, Phone...">
         </div>
 
-        <!-- Month Dropdown -->
         <div class="input-group">
             <label for="monthSelect">Select Month</label>
             <select id="monthSelect" onchange="loadSheetData()">
@@ -166,7 +212,6 @@
         </div>
     </div>
 
-    <!-- Data Display Area -->
     <div class="table-container">
         <table id="crmTable">
             <thead>
@@ -176,17 +221,16 @@
                     <th>PATIENT NAME</th>
                     <th>PHN NO.</th>
                     <th>CALL STATUS</th>
-                    <th>FEEDBACK</th>
                     <th>CALL TYPE</th>
                     <th>ASSIGNED TO</th>
                     <th>CALL DUE DATE</th>
                     <th>TASK STATUS</th>
+                    <th>FEEDBACK</th>
                     <th>REMARKS</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <!-- Data will load here -->
-            </tbody>
+                </tbody>
         </table>
     </div>
 
@@ -205,33 +249,59 @@
                 const data = await response.json();
 
                 if (data.error || !Array.isArray(data) || data.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px; color:red;">No data found for ${selectedMonth}</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px; color:#ef4444;">No data found for ${selectedMonth}</td></tr>`;
                     return;
                 }
 
                 tableBody.innerHTML = "";
                 data.forEach(row => {
                     const tr = document.createElement("tr");
-                    // Using data-label for Mobile View CSS
+
+                    // Status Badge Logic
+                    const callStatusBadge = getBadgeHTML(row["CALL STATUS"]);
+                    const taskStatusBadge = getBadgeHTML(row["TASK STATUS"]);
+
+                    // Direct Call Button Logic
+                    const phone = row["PHN NO."] || '';
+                    const phoneHTML = phone ? `<a href="tel:${phone}" class="call-btn">📞 ${phone}</a>` : '-';
+
                     tr.innerHTML = `
                         <td data-label="REG DATE">${row["REG DATE"] || '-'}</td>
                         <td data-label="PATIENT ID">${row["PATIENT ID"] || '-'}</td>
-                        <td data-label="PATIENT NAME" style="font-weight:bold;">${row["PATIENT NAME"] || '-'}</td>
-                        <td data-label="PHN NO.">${row["PHN NO."] || '-'}</td>
-                        <td data-label="CALL STATUS">${row["CALL STATUS"] || '-'}</td>
-                        <td data-label="FEEDBACK">${row["FEEDBACK"] || '-'}</td>
+                        <td data-label="PATIENT NAME" style="font-weight:700; color:#111827;">${row["PATIENT NAME"] || '-'}</td>
+                        <td data-label="PHN NO.">${phoneHTML}</td>
+                        <td data-label="CALL STATUS">${callStatusBadge}</td>
                         <td data-label="CALL TYPE">${row["CALL TYPE"] || '-'}</td>
                         <td data-label="ASSIGNED TO">${row["ASSIGNED TO"] || '-'}</td>
                         <td data-label="CALL DUE DATE">${row["CALL DUE DATE"] || '-'}</td>
-                        <td data-label="TASK STATUS">${row["TASK STATUS"] || '-'}</td>
+                        <td data-label="TASK STATUS">${taskStatusBadge}</td>
+                        <td data-label="FEEDBACK">${row["FEEDBACK"] || '-'}</td>
                         <td data-label="REMARKS">${row["REMARKS"] || '-'}</td>
                     `;
                     tableBody.appendChild(tr);
                 });
 
+                filterTable();
+
             } catch (error) {
                 console.error(error);
-                tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px; color:red;">Error loading data. Check Web App URL.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px; color:#ef4444;">Error loading data. Check Web App URL.</td></tr>`;
+            }
+        }
+
+        // Helper function for Badges
+        function getBadgeHTML(statusText) {
+            if (!statusText) return '-';
+            const status = statusText.toString().trim().toLowerCase();
+            
+            if (status.includes("completed") || status.includes("closed") || status.includes("done")) {
+                return `<span class="badge badge-success">${statusText}</span>`;
+            } else if (status.includes("pending") || status.includes("open") || status.includes("failed")) {
+                return `<span class="badge badge-danger">${statusText}</span>`;
+            } else if (status.includes("progress") || status.includes("follow") || status.includes("due")) {
+                return `<span class="badge badge-warning">${statusText}</span>`;
+            } else {
+                return `<span class="badge badge-default">${statusText}</span>`;
             }
         }
 
@@ -253,16 +323,17 @@
                         }
                     }
                 }
-                tr[i].style.display = showRow ? "block" : "none"; // Kept block for mobile compatibility
-                // fix for desktop search display:
-                if (showRow && window.innerWidth > 768) {
-                    tr[i].style.display = "table-row";
+
+                if (showRow) {
+                    tr[i].style.display = window.innerWidth <= 768 ? "grid" : "table-row";
+                } else {
+                    tr[i].style.display = "none";
                 }
             }
         }
 
         window.onload = loadSheetData;
-        window.addEventListener('resize', filterTable); // Adjust display on window resize
+        window.addEventListener('resize', filterTable);
     </script>
 
 </body>
