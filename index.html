@@ -2,7 +2,6 @@
 <html lang="ml">
 <head>
     <meta charset="UTF-8">
-    <!-- Screen zoom തടയാൻ maximum-scale, user-scalable=no നൽകിയിരിക്കുന്നു -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Global CRM</title>
     
@@ -12,7 +11,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Global CRM">
     
-    <!-- Direct Drive Image Links -->
     <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1RZ6wgEZkUFKMopJlyq7YBMp3w1_9J8bH">
     <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1RZ6wgEZkUFKMopJlyq7YBMp3w1_9J8bH">
     <link rel="manifest" href="manifest.json">
@@ -22,14 +20,13 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            /* സ്പർശിക്കുമ്പോൾ സ്ക്രീൻ സൂം ആകുന്നത് തടയുന്നു */
             touch-action: manipulation;
         }
         
         html, body {
             width: 100%;
             height: 100%;
-            overflow-x: hidden; /* സൈഡ് സ്ക്രോളിംഗ് ഒഴിവാക്കുന്നു */
+            overflow-x: hidden;
         }
 
         body {
@@ -54,7 +51,6 @@
             gap: 12px;
         }
         
-        /* Fixed Desktop & Mobile Logo Container */
         .logo-container {
             width: 50px;
             height: 50px;
@@ -197,7 +193,6 @@
         .input-group { display: flex; flex-direction: column; gap: 2px; }
         label { font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase; }
         
-        /* 16px നൽകിയാൽ മൊബൈൽ ബ്രൗസറുകൾ ഓട്ടോ-സൂം ചെയ്യില്ല */
         select, input {
             width: 100%;
             padding: 8px 10px;
@@ -243,9 +238,18 @@
             color: #0f172a;
         }
 
+        .no-data-msg {
+            text-align: center;
+            padding: 24px 10px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #ef4444;
+            background: #fff;
+        }
+
         @media screen and (max-width: 768px) {
             thead { display: none; }
-            tr {
+            tr.data-row {
                 display: grid;
                 grid-template-columns: repeat(12, 1fr);
                 gap: 6px;
@@ -329,8 +333,8 @@
 
     <div class="controls-container">
         <div class="input-group">
-            <label for="searchInput">Search Data</label>
-            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Type Name, ID, Phone...">
+            <label for="searchInput">Search All Data</label>
+            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Type Name, ID, Phone...">
         </div>
         <div class="input-group">
             <label for="monthSelect">Select Month</label>
@@ -378,6 +382,9 @@
         const monthList = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         let isPendingOnlyFilterActive = false;
         let deferredPrompt = null;
+        let currentLoadedData = [];
+        let allMonthsDataCache = null;
+        let isSearchingAll = false;
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -416,35 +423,64 @@
             document.getElementById("monthSelect").value = monthList[new Date().getMonth()];
         }
 
+        async function fetchAllData() {
+            if (allMonthsDataCache) return allMonthsDataCache;
+            const fetchPromises = monthList.map(m => fetch(`${WEB_APP_URL}?sheet=${m}`).then(res => res.json()).catch(() => []));
+            const results = await Promise.all(fetchPromises);
+            allMonthsDataCache = results.flat();
+            return allMonthsDataCache;
+        }
+
         async function loadSheetData() {
+            document.getElementById("searchInput").value = "";
+            isSearchingAll = false;
             const selectedMonth = document.getElementById("monthSelect").value;
             const tableBody = document.getElementById("tableBody");
             tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px;">Loading Data...</td></tr>`;
 
             try {
-                let combinedData = [];
                 if (selectedMonth === "ALL") {
-                    const fetchPromises = monthList.map(m => fetch(`${WEB_APP_URL}?sheet=${m}`).then(res => res.json()).catch(() => []));
-                    const results = await Promise.all(fetchPromises);
-                    combinedData = results.flat();
+                    currentLoadedData = await fetchAllData();
                 } else {
                     const response = await fetch(`${WEB_APP_URL}?sheet=${selectedMonth}`);
-                    combinedData = await response.json();
+                    currentLoadedData = await response.json();
                 }
 
-                if (!Array.isArray(combinedData) || combinedData.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px;">No Data Found</td></tr>`;
-                    return;
-                }
+                renderTableData(currentLoadedData);
+            } catch (err) {
+                tableBody.innerHTML = `<tr><td colspan="11" class="no-data-msg">Data Fetch Error / ഡാറ്റ ലോഡ് ചെയ്യുന്നതിൽ തടസ്സം നേരിട്ടു</td></tr>`;
+            }
+        }
 
-                tableBody.innerHTML = "";
-                let total = combinedData.length, completed = 0, pending = 0;
-                let cExc = 0, cGood = 0, cAvg = 0, cBad = 0;
+        function renderTableData(dataArray) {
+            const tableBody = document.getElementById("tableBody");
+            
+            if (!Array.isArray(dataArray) || dataArray.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="11" class="no-data-msg">No Data Found / വിവരങ്ങൾ ഒന്നും കണ്ടെത്തിയില്ല</td></tr>`;
+                resetStats();
+                return;
+            }
 
-                combinedData.forEach(row => {
+            tableBody.innerHTML = "";
+            let total = 0, completed = 0, pending = 0;
+            let cExc = 0, cGood = 0, cAvg = 0, cBad = 0;
+            let visibleCount = 0;
+
+            const input = document.getElementById("searchInput").value.toLowerCase().trim();
+
+            dataArray.forEach(row => {
+                const rowText = Object.values(row).join(" ").toLowerCase();
+                const isPending = !((row["TASK STATUS"] || '').toString().toLowerCase().includes("completed") || (row["TASK STATUS"] || '').toString().toLowerCase().includes("done"));
+                
+                let matchesSearch = input === "" || rowText.includes(input);
+                let matchesPending = !isPendingOnlyFilterActive || isPending;
+
+                if (matchesSearch && matchesPending) {
+                    visibleCount++;
                     const tr = document.createElement("tr");
-                    const feedback = (row["FEEDBACK"] || '').toString().toLowerCase();
+                    tr.className = "data-row";
                     
+                    const feedback = (row["FEEDBACK"] || '').toString().toLowerCase();
                     let key = "other", emoji = "💬";
                     if (feedback.includes("excellent")) { key = "excellent"; emoji = "🤩"; cExc++; }
                     else if (feedback.includes("good")) { key = "good"; emoji = "😊"; cGood++; }
@@ -453,9 +489,9 @@
 
                     tr.style.borderLeftColor = key === 'excellent' ? '#10b981' : key === 'good' ? '#3b82f6' : key === 'average' ? '#f59e0b' : key === 'bad' ? '#ef4444' : '#94a3b8';
 
-                    const taskStatus = (row["TASK STATUS"] || '').toString().toLowerCase();
-                    if (taskStatus.includes("completed") || taskStatus.includes("done")) { completed++; tr.setAttribute("data-pending", "false"); }
+                    if (!isPending) { completed++; tr.setAttribute("data-pending", "false"); }
                     else { pending++; tr.setAttribute("data-pending", "true"); }
+                    total++;
 
                     const rawPhone = (row["PHN NO."] || '').toString().replace(/[^0-9]/g, '');
                     const waPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
@@ -482,43 +518,62 @@
                         <td data-label="REMARKS">${row["REMARKS"] || '-'}</td>
                     `;
                     tableBody.appendChild(tr);
-                });
+                }
+            });
 
-                document.getElementById("totalTasks").innerText = total;
-                document.getElementById("completedTasks").innerText = completed;
-                document.getElementById("pendingTasks").innerText = pending;
-                document.getElementById("countExcellent").innerText = cExc;
-                document.getElementById("countGood").innerText = cGood;
-                document.getElementById("countAverage").innerText = cAvg;
-                document.getElementById("countBad").innerText = cBad;
-
-            } catch (err) {
-                tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px; color:red;">Data Fetch Error</td></tr>`;
+            if (visibleCount === 0) {
+                tableBody.innerHTML = `<tr><td colspan="11" class="no-data-msg">No Data Found / വിവരങ്ങൾ ഒന്നും കണ്ടെത്തിയില്ല</td></tr>`;
             }
+
+            document.getElementById("totalTasks").innerText = total;
+            document.getElementById("completedTasks").innerText = completed;
+            document.getElementById("pendingTasks").innerText = pending;
+            document.getElementById("countExcellent").innerText = cExc;
+            document.getElementById("countGood").innerText = cGood;
+            document.getElementById("countAverage").innerText = cAvg;
+            document.getElementById("countBad").innerText = cBad;
         }
 
-        function filterTable() {
-            const input = document.getElementById("searchInput").value.toLowerCase();
-            const rows = document.querySelectorAll("#crmTable tbody tr");
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                const isPending = row.getAttribute("data-pending") === "true";
-                let show = text.indexOf(input) > -1;
-                if (isPendingOnlyFilterActive && !isPending) show = false;
-                row.style.display = show ? (window.innerWidth <= 768 ? "grid" : "table-row") : "none";
-            });
+        function resetStats() {
+            document.getElementById("totalTasks").innerText = 0;
+            document.getElementById("completedTasks").innerText = 0;
+            document.getElementById("pendingTasks").innerText = 0;
+            document.getElementById("countExcellent").innerText = 0;
+            document.getElementById("countGood").innerText = 0;
+            document.getElementById("countAverage").innerText = 0;
+            document.getElementById("countBad").innerText = 0;
+        }
+
+        async function handleSearch() {
+            const input = document.getElementById("searchInput").value.trim();
+            const selectedMonth = document.getElementById("monthSelect").value;
+
+            if (input.length > 0) {
+                if (selectedMonth !== "ALL" && !isSearchingAll) {
+                    isSearchingAll = true;
+                    const tableBody = document.getElementById("tableBody");
+                    tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 18px;">Searching all months...</td></tr>`;
+                    const allData = await fetchAllData();
+                    renderTableData(allData);
+                } else {
+                    renderTableData(allMonthsDataCache || currentLoadedData);
+                }
+            } else {
+                isSearchingAll = false;
+                renderTableData(currentLoadedData);
+            }
         }
 
         function togglePendingFilter() {
             isPendingOnlyFilterActive = !isPendingOnlyFilterActive;
             document.getElementById("pendingStatCard").classList.toggle("stat-card-active", isPendingOnlyFilterActive);
-            filterTable();
+            handleSearch();
         }
 
         function clearPendingFilter() {
             isPendingOnlyFilterActive = false;
             document.getElementById("pendingStatCard").classList.remove("stat-card-active");
-            filterTable();
+            handleSearch();
         }
 
         window.onload = function() {
